@@ -1,0 +1,16 @@
+@import 'flowbite/dist/flowbite.css';
+
+.custom-dropdown {
+    color: #4a4a4a;
+    transition: color 0.3s ease;
+  }
+  
+  .custom-dropdown:hover {
+    color: #214f52;
+  }
+  
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+

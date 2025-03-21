@@ -1,0 +1,122 @@
+Features Overview:
+
+1. Users
+Attributes:
+_id: Unique identifier
+name: User's full name
+email: User's email address (unique)
+password: Hashed password for authentication
+gender: User's gender
+phone: User's phone number
+role: User role (e.g., admin, customer, seller)
+address: User's physical address
+image: URL to user's profile picture
+createdAt: Timestamp for account creation
+updatedAt: Timestamp for last update
+
+2. User Information
+Attributes:
+_id: Unique identifier
+userId: Reference to the Users collection
+sellerInformation: Additional information for users with seller roles
+organization: Name of the organization (if applicable)
+registrationDetail: Details about user registration (e.g., date, method)
+profileCompletion: Percentage of profile completion
+socialLinks: Links to user's social media profiles
+
+3. Banner
+Attributes:
+_id: Unique identifier
+image: URL of the banner image
+link: URL that the banner directs to
+position: Position of the banner (e.g., homepage, category)
+active: Boolean to indicate if the banner is active
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+4. Brand
+Attributes:
+_id: Unique identifier
+name: Brand name
+logo: URL of the brand's logo
+description: Description of the brand
+products: Array of product IDs associated with the brand
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+5. Category
+Attributes:
+_id: Unique identifier
+name: Category name
+description: Description of the category
+parentCategory: Reference to a parent category (for subcategories)
+products: Array of product IDs associated with the category
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+6. Product
+Attributes:
+_id: Unique identifier
+name: Product name
+description: Product description
+price: Price of the product
+brandId: Reference to the Brand
+categoryId: Reference to the Category
+inventory: Current stock level
+images: Array of URLs for product images
+attributes: Additional attributes (size, color, etc.)
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+7. Order
+Attributes:
+_id: Unique identifier
+userId: Reference to the Users collection
+products: Array of product IDs with quantities
+totalAmount: Total order amount
+status: Current status of the order (e.g., pending, completed, canceled)
+paymentMethod: Payment method used for the order
+createdAt: Timestamp for order placement
+updatedAt: Timestamp for last update
+
+8. Transaction
+Attributes:
+_id: Unique identifier
+orderId: Reference to the associated Order
+amount: Transaction amount
+paymentMethod: Payment method used
+status: Transaction status (e.g., success, failed)
+createdAt: Timestamp for transaction
+updatedAt: Timestamp for last update
+
+9. Offers/Vouchers/Coupons
+Attributes:
+_id: Unique identifier
+code: Unique code for the offer
+discount: Discount amount or percentage
+validFrom: Start date of the offer
+validUntil: Expiry date of the offer
+applicableCategories: Array of category IDs where the offer can be applied
+maxUsage: Maximum number of times the offer can be used
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+10. Inventory
+Attributes:
+_id: Unique identifier
+productId: Reference to the Product
+quantity: Available stock quantity
+warehouseLocation: Location of the inventory (if applicable)
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update
+
+11. Logistics
+Attributes:
+_id: Unique identifier
+orderId: Reference to the Order
+trackingNumber: Tracking number for shipment
+carrier: Name of the shipping carrier
+status: Current status of the shipment (e.g., shipped, in transit, delivered)
+expectedDeliveryDate: Estimated delivery date
+createdAt: Timestamp for creation
+updatedAt: Timestamp for last update

@@ -1,0 +1,26 @@
+#default-carousel {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  @media (max-width: 640px) {
+    #default-carousel,
+    #default-carousel * {
+      margin: 0 !important; /* Remove all margins from carousel and children */
+      padding: 0 !important; /* Remove all padding from carousel and children */
+    }
+  }
+
+
+  /* Custom styles for improved aesthetics */
+.select-custom {
+  background-color: #f0f0f0; 
+  border: 1px solid #d1d5db; 
+  border-radius: 0.375rem; 
+  padding: 0.5rem;
+  transition: background-color 0.3s ease; 
+}
+
+.select-custom:hover {
+  background-color: #e2e8f0; 
+}
