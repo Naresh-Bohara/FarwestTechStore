@@ -24,3 +24,10 @@
 .select-custom:hover {
   background-color: #e2e8f0; 
 }
+
+.ck-editor__editable_inline {
+  min-height: 200px;
+  border: 1px solid #d1d5db; /* Tailwind border-gray-300 */
+  border-radius: 0.5rem;      /* Rounded corners */
+  padding: 0.75rem;           /* Some padding inside */
+}

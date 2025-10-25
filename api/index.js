@@ -1,4 +1,5 @@
 import http from "http";
+import { Server } from "socket.io";
 import application from "./src/config/express.config.js";
 
 const args = process.argv.splice(2) || null
@@ -19,6 +20,22 @@ if(args.length){
 }
 
 const appServer = http.createServer(application);
+
+const io = new Server(appServer, {
+    cors: {
+        origin: "http://localhost:3000",
+    },
+});
+
+io.on("connection", (socket)=>{
+    // console.log(socket.id)
+    socket.on("newMessage", (data)=>{
+        socket.broadcast.emit("newMessageReceived", data)
+    })
+    
+})
+ 
+
 appServer.listen(port, host, (err)=>{
     if(!err){
         console.log('server is running on port: ', port);

@@ -1,9 +1,10 @@
+import e from "express";
 import HttpResponse from "../../constants/response-status.contants.js";
 import productSvc from "./product.service.js";
 
 class ProductController {
-    storeProduct =async(req, res, next)=>{
-        try{
+    storeProduct = async (req, res, next) => {
+        try {
             // transfer data
             // DB store
             // respond
@@ -15,15 +16,15 @@ class ProductController {
                 status: HttpResponse.product.create_success,
                 options: null
             })
-        
-        }catch(exception){
+
+        } catch (exception) {
             console.log("StoreProduct", exception);
             next(exception);
         }
     }
 
-    updateProduct = async(req, res, next)=>{
-        try{
+    updateProduct = async (req, res, next) => {
+        try {
             const productExists = await productSvc.getDataById(req.params.id);
             const data = await productSvc.transformProductUpdateData(req, productExists);
             const updated = await productSvc.updateProductById(req.params.id, data)
@@ -33,26 +34,26 @@ class ProductController {
                 status: HttpResponse.product.update_success,
                 options: null
             })
-        }catch(exception){
+        } catch (exception) {
             console.log("updateProduct: ", exception);
             next(exception);
         }
     }
 
-    listAllData = async(req, res, next)=>{
-        try{
+    listAllData = async (req, res, next) => {
+        try {
             // pagination
             let page = +req.query.page || 1;
             let limit = +req.query.limit || 10;
-            let skip = (page-1) * limit;
+            let skip = (page - 1) * limit;
 
             // filter
             let filter = {};
-            if(req.query.keyword){
+            if (req.query.keyword) {
                 filter = {
-                    $or:[
-                        {title: new RegExp(req.query.keyword, 'i')},
-                        {description: new RegExp(req.query.keyword, 'i')},
+                    $or: [
+                        { title: new RegExp(req.query.keyword, 'i') },
+                        { description: new RegExp(req.query.keyword, 'i') },
                     ]
                 }
             }
@@ -74,14 +75,14 @@ class ProductController {
                     total: totalCount
                 }
             })
-        }catch(exception){
+        } catch (exception) {
             console.log("ListAllData: ", exception);
             next(exception);
         }
     }
 
-    getById = async(req, res, next)=>{
-        try{
+    getById = async (req, res, next) => {
+        try {
             const id = req.params.id;
             const data = await productSvc.getDataById(id);
             res.json({
@@ -90,14 +91,14 @@ class ProductController {
                 status: "PRODUCT_DETAIL",
                 options: null,
             })
-        }catch(exception){
+        } catch (exception) {
             console.log("getById: ", exception);
             next(exception)
         }
     }
 
-    deleteById = async(req, res, next)=>{
-        try{
+    deleteById = async (req, res, next) => {
+        try {
             const productExists = await productSvc.getDataById(req.params.id);
             let deletedData = await productSvc.deleteById(req.params.id)
 
@@ -108,14 +109,14 @@ class ProductController {
                 options: null
             })
 
-        }catch(exception){
+        } catch (exception) {
             console.log("deleteById: ", exception);
             next(exception);
         }
     }
 
-    getForHomePage = async(req, res, next)=>{
-        try{
+    getForHomePage = async (req, res, next) => {
+        try {
             let data = await productSvc.listAllProductData({
                 limit: 16,
                 page: 1,
@@ -129,40 +130,131 @@ class ProductController {
                 status: HttpResponse.product.list_for_home,
                 options: null,
             })
-        }catch(exception){
+        } catch (exception) {
             console.log("getForHomePage: ", exception);
             next(exception);
         }
     }
 
-    getDetailBySlug = async(req, res, next)=>{
-        try{
+    getDetailBySlug = async (req, res, next) => {
+        try {
             const slug = req.params.slug;
+
+            // Get product detail
             const productDetail = await productSvc.getSingleProductByFilter({
                 slug: slug,
                 status: "active"
-            })
-            let related = await productSvc.listAllProductData({
+            });
+
+            // Get related products
+            const related = await productSvc.listAllProductData({
                 skip: 0,
-                limit: 8, 
+                limit: 8,
                 filter: {
-                    slug: {$ne: slug},
+                    slug: { $ne: slug },
                     status: "active",
                     category: productDetail.category._id
                 }
-            })
+            });
+
+            // Get reviews for this product
+            const { reviews, avgRating, totalReviews } = await productSvc.getReviewsByProductId(productDetail._id);
+
+            // Send response
             res.json({
                 data: {
                     detail: productDetail,
-                    related: related
+                    related: related,
+                    reviews: reviews.length ? reviews : [], // empty array if no reviews
+                    avgRating: parseFloat(avgRating), // convert string to number if needed
+                    totalReviews: totalReviews
                 },
-                message: "Product detail.", 
+                message: "Product detail.",
                 status: HttpResponse.product.list_success
-            })
-        }catch(exception){
-            next(exception)
+            });
+        } catch (exception) {
+            console.log("getDetailBySlug: ", exception);
+            next(exception);
         }
-    }
+    };
+
+
+    addReview = async (req, res, next) => {
+        try {
+            const productId = req.params.id;
+            const userId = req.loggedInUser._id;
+
+            // Check if product exists
+            const productExists = await productSvc.checkProductExists(productId);
+            if (!productExists) {
+                return res.status(404).json({
+                    message: "Product not found.",
+                    status: HttpResponse.product.not_found,
+                    options: null
+                });
+            }
+
+            // Check how many reviews user already has for this product
+            const existingReviews = await productSvc.countUserReviews(productId, userId);
+
+            if (existingReviews >= 3) {
+                return res.status(400).json({
+                    message: "You can only add up to 3 reviews per product.",
+                    status: HttpResponse.review.limit_exceeded,
+                    options: null
+                });
+            }
+
+            // Transform request data
+            const reviewData = await productSvc.transformReviewData(req, productId);
+
+            // Save review
+            const createdReview = await productSvc.createReview(reviewData);
+
+            res.json({
+                data: createdReview,
+                message: "Review added successfully!",
+                status: HttpResponse.review.create_success,
+                options: null
+            });
+        } catch (exception) {
+            console.log("addReview: ", exception);
+            next(exception);
+        }
+    };
+
+    // Get user review count for a product
+    getUserReviewCount = async (req, res, next) => {
+        try {
+            const productId = req.params.id;
+            const userId = req.loggedInUser._id;
+
+            // Check if product exists
+            const productExists = await productSvc.checkProductExists(productId);
+            if (!productExists) {
+                return res.status(404).json({
+                    message: "Product not found.",
+                    status: HttpResponse.product.not_found,
+                    options: null
+                });
+            }
+
+            const count = await productSvc.countUserReviews(productId, userId);
+
+            res.json({
+                data: { count },
+                message: "User review count fetched successfully",
+                status: HttpResponse.success,
+                options: null,
+            });
+        } catch (exception) {
+            console.log("getUserReviewCount: ", exception);
+            next(exception);
+        }
+    };
+
+
+
 }
 
 const productCtrl = new ProductController();

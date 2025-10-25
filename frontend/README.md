@@ -143,20 +143,6 @@
         ```...```
 
 
-<form>
-    User Input 
-
-    <input type="" /> 255 max chars
-
-    <textarea></textarea>
-
-    <select>
-        <option></option>
-    </select>
-
-    <button type="submit"></button>
-</form>
-
 ## Form 
 - Design 
 - Validation
@@ -284,3 +270,105 @@ NOTE: all the fields must have name attribute and should be unique(except except
 - DDD (Design driven development)
 - TDD (Test driven development)
 - BDD (Behavioural/business driven development)
+
+
+
+<!-- We can use instead of ckeditor draft.js or tinyMCE -->
+
+
+## Socket Programing:
+
+                Socket Server
+
+client (node)       client (node)       client (node)       client (node)       client (node)
+
+
+
+## Agile
+- Process (Starting phase complete timeframe)
+- Iterative Development
+- Every day => Standup Meeting (15 min)
+  - Yesterday's work
+  - What you are working on today
+  - If any issues, raise them
+- Task start estimates
+
+Project Duration: 3 months [Sprint Board, Kanban Board]
+- Starting day => Kickoff Meeting
+  - PM overview
+  - PM tasks define
+  - Estimates (in hours, story points)  
+    - Example: Login screen = 4h  
+    - Example: Task Z = 8h
+- On board
+- Sprint duration: 1 week / 15 days
+- Monday => Sprint Planning Meeting
+- Friday => Retrospective Meeting
+
+
+### Agile Process Overview
+## Key Concepts
+- **Process:** Define starting phase and complete timeframe.
+- **Iterative Development:** Work in repeated cycles (sprints) to progressively deliver features.
+- **Daily Standup Meetings (15 min):**  
+  Each team member discusses:  
+  - Work completed yesterday  
+  - Work planned for today  
+  - Any blockers/issues
+- **Task Estimation:** Provide start estimates for tasks (in hours or story points).
+
+---
+
+## Project Duration
+- **Total Duration:** 3 months  
+- **Boards:** Sprint Board, Kanban Board  
+
+---
+
+## Key Meetings
+
+### Kickoff Meeting (Project Start)
+- Project Manager (PM) overview  
+- Task definition and assignment  
+- Task estimation  
+  - Example: Login screen = 4h  
+  - Example: Task Z = 8h  
+
+### Sprint Planning Meeting (Every Monday)
+- Plan tasks for the upcoming sprint  
+
+### Retrospective Meeting (Every Friday)
+- Review progress and discuss improvements  
+
+---
+
+## Sprint Cycle
+- **Duration per Sprint:** 1–2 weeks  
+- **Board Updates:** Track task progress on the Sprint/Kanban board  
+
+
+### PMT:
+- jira
+- trello
+- clickup
+- zoho
+
+
+## interview
+ - techinical round....
+ - REPL
+ - async-await
+ - middleware
+ - garbage collector 
+ - global error handler
+ - js hoisting
+ - packages (redux) (global storage in react)
+ - createAsyncThunk (to hanndle async in redux)
+ - cors
+ - xsrf / csrf
+ - throttle 
+ - rate limiter
+
+ //////////////////////////////////////////////////////////
+
+ - forget-password endnpoint, userlistingn fronntend user managemnt .....enndpints...

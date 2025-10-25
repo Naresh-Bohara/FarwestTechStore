@@ -20,6 +20,9 @@ authRouter.get("/refresh", refreshToken, authCtrl.refreshToken)
 
 authRouter.get("/all-admin", checkLogin,checkPermission(['admin']), authCtrl.getUsers)
 
-authRouter.post("/:id", checkLogin, authCtrl.updateUserById)
+// authRouter.get("/user-by-type", checkLogin,checkPermission(['admin']), authCtrl.getUserList)
+authRouter.get("/user-by-type", checkLogin, authCtrl.getUserList)
+
+authRouter.post("/:id", checkLogin, authCtrl.updateUserById);
 
 export default authRouter;

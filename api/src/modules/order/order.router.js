@@ -11,7 +11,7 @@ orderRouter.post("/add-to-cart", checkLogin, checkPermission(['customer', 'admin
 
 orderRouter.get("/my-cart", checkLogin, checkPermission(['customer', 'admin']), orderCtrl.viewAllCartItems)
 
-orderRouter.put("/remove-from-cart", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(RemoveFromCartDTO), orderCtrl.removeFromCart)
+orderRouter.put("/remove-cart-item", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(RemoveFromCartDTO), orderCtrl.removeFromCart)
 
 orderRouter.post("/checkout", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(CheckoutDTO), orderCtrl.checkout) 
 

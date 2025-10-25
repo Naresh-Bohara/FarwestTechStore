@@ -20,6 +20,10 @@ const OrderSchema = mongoose.Schema({
     serviceCharge: {
         type: Number
     },
+      deliveryCharge: {      
+    type: Number,
+    default: 0,
+  },
     total: {
         type: Number,
         required: true

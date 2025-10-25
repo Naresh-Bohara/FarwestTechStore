@@ -50,6 +50,9 @@ const HttpResponse = {
         list_for_home: "PRODUCT_LIST_FOR_HOME",
         list_success: "PRODUCT_LIST_SUCCESS"
     },
+        review: {
+               create_success: "REVIEW_CREATE_SUCCESS",
+        },
     cart: {
         create_cart_success: "CREATE_CART_SUCCESS",
         cart_update_success: "CART_UPDATE_SUCCESS",

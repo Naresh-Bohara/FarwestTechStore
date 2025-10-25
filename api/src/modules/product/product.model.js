@@ -6,7 +6,6 @@ const ProductSchema = new mongoose.Schema({
         required: true,
         min:3,
         max:100,
-        unique: true
     },
 
     slug:{

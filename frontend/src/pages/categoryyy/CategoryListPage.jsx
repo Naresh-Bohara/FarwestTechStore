@@ -57,7 +57,7 @@ const CategoryListPage = () => {
                   <td className="px-4 py-3">01/10/2024</td>
                   <td className="px-4 py-3 flex items-center justify-end">
                     <NavLink
-                      to={"/admin/category/edit/1234"}
+                      to={"/admin/categories/edit/1234"}
                       className="w-8 h-8 bg-teal-700 rounded-full me-2 flex items-center justify-center hover:bg-teal-900"
                     >
                       <FaPen className="text-white" />

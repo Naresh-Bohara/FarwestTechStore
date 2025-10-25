@@ -223,6 +223,27 @@ class AuthController {
       next(exception)
      }
     }
+
+    getUserList = async(req, res, next)=>{
+      try{
+        const role = req?.query?.role || null;
+        let filter = {
+          _id: {$ne: req.loggedInUser._id}
+        };
+        if(role){
+         filter = {...filter, role: role}
+        }
+        const userList = await authSvc.getListOfUsers(filter);
+        res.json({
+           data: userList,
+        message: "User listed.",
+        status: HttpResponse.success,
+        options: null
+        })
+      }catch(exception){
+        next(exception)
+      }
+    }
 }
 
 const authCtrl = new AuthController()

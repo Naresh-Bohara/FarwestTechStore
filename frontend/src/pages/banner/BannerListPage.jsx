@@ -10,7 +10,10 @@ import bannerSvc from "./banner.service";
 import { DateTime } from "luxon";
 import { PaginationComponent } from "../../components/pagination/Pagination";
 import { StatusBadge } from "../../components/badge/BadgeComponent";
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 const BannerListPage = () => {
   const [dataList, setDataList] = useState();
@@ -60,19 +63,19 @@ const BannerListPage = () => {
     };
   }, [search]);
 
-  const deleteData = async(bannerId)=>{
-    try{
-      setLoading(true)
-      await bannerSvc.deleteBanner(bannerId)
-      toast.success("Banner deleted successfully.")
-      await loadData({page: pagination.currentPage});
-    }catch(exception){
-      toast.error("Error while deleting banner.")
+  const deleteData = async (bannerId) => {
+    try {
+      setLoading(true);
+      await bannerSvc.deleteBanner(bannerId);
+      toast.success("Banner deleted successfully.");
+      await loadData({ page: pagination.currentPage });
+    } catch (exception) {
+      toast.error("Error while deleting banner.");
       console.log(exception);
-    }finally{
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
@@ -85,7 +88,7 @@ const BannerListPage = () => {
             </div>
             <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
               <ContentAddButton
-                url={"/admin/banner/create"}
+                url={"/admin/banners/create"}
                 btnText={"Add Banner"}
               />
             </div>
@@ -124,66 +127,70 @@ const BannerListPage = () => {
                   {dataList && dataList.length ? (
                     <>
                       {dataList.map((row, index) => (
-                        
-                          <tbody key={index}>
-                            <tr className="border-b dark:border-gray-700">
-                              <th
-                                scope="row"
-                                className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                              >
-                                {row.title}
-                              </th>
-                              <td className="px-4 py-3">
-                                <img
-                                  src={row.image}
-                                  alt=""
-                                  className="max-w-20"
-                                />
-                              </td>
-                              <td className="px-4 py-3">
-                               <StatusBadge status={row.status} />
-                              </td>
-                              <td className="px-4 py-3"> {row.link} </td>
-                              <td className="px-4 py-3">
-                                {`${DateTime.fromISO(row.startDate).toFormat(
-                                  "y-MM-dd"
-                                )} - ${DateTime.fromISO(row.endDate).toFormat(
-                                  "y-MM-dd"
-                                )}`}
-                              </td>
+                        <tbody key={index}>
+                          <tr className="border-b dark:border-gray-700">
+                            <th
+                              scope="row"
+                              className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                            >
+                              {row.title}
+                            </th>
+                            <td className="px-4 py-3">
+                              <img
+                                src={row.image}
+                                alt=""
+                                className="max-w-20"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge status={row.status} />
+                            </td>
+                            <td className="px-4 py-3"> {row.link} </td>
+                            <td className="px-4 py-3">
+                              {`${DateTime.fromISO(row.startDate).toFormat(
+                                "y-MM-dd"
+                              )} - ${DateTime.fromISO(row.endDate).toFormat(
+                                "y-MM-dd"
+                              )}`}
+                            </td>
 
-                              <td className="px-4 py-3 flex items-center justify-end">
-                                <NavLink
-                                  to={`/admin/banner/edit/${row._id}`} 
-                                  className="w-8 h-8 bg-teal-700 rounded-full me-2 flex items-center justify-center hover:bg-teal-900"
-                                >
-                                  <FaPen className="text-white" />
-                                </NavLink>
-                                <NavLink
-                                  onClick={(e)=>{
-                                    e.preventDefault();
-                                    Swal.fire({
-                                      title: "Are you sure?",
-                                      text: "You won't be able to revert this!",
-                                      icon: "warning",
-                                      showCancelButton: true,
-                                      confirmButtonColor: "#085c66",
-                                      cancelButtonColor: "#c81e1e",
-                                      confirmButtonText: "Yes, delete it!"
-                                    }).then(async(result) => {
-                                      if (result.isConfirmed) {
-                                       await deleteData(row._id);
-                                      }
-                                    });
-                                  }}
-                                  className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
-                                >
-                                  <FaTrash className="text-white" />
-                                </NavLink>
-                              </td>
-                            </tr>
-                          </tbody>
-                        
+                            <td className="px-4 py-3 flex items-center justify-end">
+                              <NavLink
+                                to={`/admin/banners/edit/${row._id}`}
+                                className="w-8 h-8 bg-teal-700 rounded-full me-2 flex items-center justify-center hover:bg-teal-900"
+                              >
+                                <FaPen className="text-white" />
+                              </NavLink>
+                              <NavLink
+                                onClick={() => {
+                                  MySwal.fire({
+                                    title: "Are you sure?",
+                                    text: "You won't be able to revert this!",
+                                    icon: "warning",
+                                    iconColor: "#0f766e",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Yes, delete it",
+                                    cancelButtonText: "Cancel",
+                                    buttonsStyling: false,
+                                    customClass: {
+                                      confirmButton:
+                                        "bg-teal-700 hover:bg-teal-900 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                      cancelButton:
+                                        "bg-red-600 hover:bg-red-800 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                    },
+                                  }).then(async (result) => {
+                                    if (result.isConfirmed) {
+                                      await deleteData(row._id);
+                                    }
+                                  });
+                                }}
+                                className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
+                              >
+                                <FaTrash className="text-white" />
+                              </NavLink>
+                            </td>
+                          </tr>
+                        </tbody>
                       ))}
                     </>
                   ) : (

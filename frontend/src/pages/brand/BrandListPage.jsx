@@ -10,6 +10,10 @@ import brandSvc from "./brand.service";
 import { PaginationComponent } from "../../components/pagination/Pagination";
 import { StatusBadge } from "../../components/badge/BadgeComponent";
 import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
+
 
 const BrandListPage = () => {
   const [dataList, setDataList] = useState();
@@ -84,8 +88,8 @@ const BrandListPage = () => {
             </div>
             <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
               <ContentAddButton
-                url={"/admin/brand/create"}
-                btnText={"Add Brand"}
+                url={"/admin/brands/create"}
+                btnText={"Add Brand"} 
               />
             </div>
           </div>
@@ -149,31 +153,38 @@ const BrandListPage = () => {
                             </td>
                             <td className="px-4 py-3 flex items-center justify-end">
                               <NavLink
-                                to={`/admin/brand/edit/${row._id}`}
+                                to={`/admin/brands/edit/${row._id}`}
                                 className="w-8 h-8 bg-teal-700 rounded-full me-2 flex items-center justify-center hover:bg-teal-900"
                               >
                                 <FaPen className="text-white" />
                               </NavLink>
                               <NavLink
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  Swal.fire({
-                                    title: "Are you sure?",
-                                    text: "You won't be able to revert this!",
-                                    icon: "warning",
-                                    showCancelButton: true,
-                                    confirmButtonColor: "#085c66",
-                                    cancelButtonColor: "#c81e1e",
-                                    confirmButtonText: "Yes, delete it!",
-                                  }).then(async (result) => {
-                                    if (result.isConfirmed) {
-                                      await deleteData(row._id);
-                                    }
-                                  });
-                                }}
-                                className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
-                              >
-                                <FaTrash className="text-white" />
+                               onClick={() => {
+                                MySwal.fire({
+                                  title: "Are you sure?",
+                                  text: "You won't be able to revert this!",
+                                  icon: "warning",
+                                  iconColor: "#0f766e", 
+                                  showCancelButton: true,
+                                  confirmButtonText: "Yes, delete it",
+                                  cancelButtonText: "Cancel",
+                                  buttonsStyling: false,
+                                  customClass: {
+                                    confirmButton:
+                                      "bg-teal-700 hover:bg-teal-900 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                    cancelButton:
+                                      "bg-red-600 hover:bg-red-800 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                  },
+                                })
+                                .then(async (result) => {
+                                  if (result.isConfirmed) {
+                                    await deleteData(row._id);
+                                  }
+                                });
+                              }}
+                              className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
+                            >
+                              <FaTrash className="text-white" />
                               </NavLink>
                             </td>
                           </tr>

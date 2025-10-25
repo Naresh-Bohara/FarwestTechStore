@@ -61,7 +61,7 @@ const AddCategoryPage = () => {
 
   const addCategory = async (data) => {
     try {
-      console.log(data)
+      // console.log(data)
       setLoading(true);
       data.image = image;
 

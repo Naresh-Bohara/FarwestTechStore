@@ -1,78 +1,79 @@
-import React from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import ProductCard from '../../components/ProductCard'; // Import the ProductCard component
-import product from "../../assets/images/product.jpg"
-
-const products = [
-  {
-    id: 1,
-    category: 'robotics-kits',
-    name: 'RC2205 2300KV Brushless Motor',
-    price: 'Rs. 1305',
-    imageUrl: product, 
-  },
-  {
-    id: 2,
-    category: 'robotics-kits',
-    name: 'RC2205 2300KV Brushless Motor',
-    price: 'Rs. 1305',
-    imageUrl: 'https://m.media-amazon.com/images/I/81KhuUWwtwL.jpg', 
-  },
-  {
-    id: 3,
-    category: 'rcmotors',
-    name: 'RC Motor XYZ',
-    price: 'Rs. 1500',
-    imageUrl: 'https://m.media-amazon.com/images/I/51hxzBAdOfL._SL1000_.jpg',
-  },
-  {
-    id: 4,
-    category: 'drones-uavs',
-    name: 'Drone ABC',
-    price: 'Rs. 2500',
-    imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJaB4JyeOxD_WBTgVz_4zmGQycrp2eViRhjw&s',
-  },
-  {
-    id: 5,
-    category: 'microcontrollers-boards',
-    name: 'Microcontroller 123',
-    price: 'Rs. 800',
-    imageUrl: 'https://robonepal.com/wp-content/uploads/2024/06/1-19-1.jpg', 
-  },
-];
+import React, { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import ProductCard from "../../components/ProductCard";
+import productSvc from "../product/product.service";
 
 const CategoryDetailPage = () => {
-  const params = useParams();
+  const { id: categorySlug } = useParams(); 
   const [query] = useSearchParams();
-  
-  // Filter products based on the category id
-  const filteredProducts = products.filter(product => 
-    product.category.toLowerCase() === params.id.toLowerCase()
-  );
+  const searchQuery = query.get("search") || "";
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await productSvc.getProductBySlug(categorySlug);
+        let data = response.data || [];
+        console.log(data)
+
+        if (searchQuery) {
+          data = data.filter((p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError("Failed to load products. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [categorySlug, searchQuery]);
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">
-        This is the category details page of "{params.id}". 
+    <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <h2 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+        Category: <span className="capitalize">{categorySlug.replace("-", " ")}</span>
       </h2>
-      <h3 className="text-lg mb-2">Search Query: {query.get("search")}</h3>
 
-      <div className="flex flex-wrap justify-center gap-6">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map(product => (
-            <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4" key={product.id}>
-              <ProductCard 
-                productUrl={product.imageUrl} 
-                productName={product.name} 
-                productPrice={product.price} 
-                productRating={4}
-              />
-            </div>
-          ))
-        ) : (
-          <p>No products found in this category.</p>
-        )}
-      </div>
+      {searchQuery && (
+        <h3 className="text-lg mb-4 text-gray-700 dark:text-gray-300">
+          Search Results for: <span className="font-medium">{searchQuery}</span>
+        </h3>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center mt-10">
+          <div className="w-12 h-12 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
+        </div>
+      ) : error ? (
+        <p className="text-red-500 text-center mt-6">{error}</p>
+      ) : products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard
+              key={product._id || product.id}
+              productUrl={product.imageUrl}
+              productName={product.name}
+              productPrice={product.price}
+              productRating={product.rating || 4}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-700 dark:text-gray-300 text-center mt-6">
+          No products found in this category.
+        </p>
+      )}
     </div>
   );
 };

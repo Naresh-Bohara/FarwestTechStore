@@ -6,10 +6,13 @@ import { TableRows } from "../../components/skeleton/TableSketelon";
 import { StatusBadge } from "../../components/badge/BadgeComponent";
 import { NavLink } from "react-router-dom";
 import { FaPen, FaTrash } from "react-icons/fa6";
-import Swal from "sweetalert2";
 import { PaginationComponent } from "../../components/pagination/Pagination";
 import { toast } from "react-toastify";
 import productSvc from "./product.service";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 const ProductListPage = () => {
   const [search, setSearch] = useState();
@@ -170,27 +173,35 @@ const ProductListPage = () => {
                                 >
                                   <FaPen className="text-white" />
                                 </NavLink>
-                                <NavLink
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    Swal.fire({
-                                      title: "Are you sure?",
-                                      text: "You won't be able to revert this!",
-                                      icon: "warning",
-                                      showCancelButton: true,
-                                      confirmButtonColor: "#085c66",
-                                      cancelButtonColor: "#c81e1e",
-                                      confirmButtonText: "Yes, delete it!",
-                                    }).then(async (result) => {
-                                      if (result.isConfirmed) {
-                                        await deleteData(row._id);
-                                      }
-                                    });
-                                  }}
-                                  className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
-                                >
-                                  <FaTrash className="text-white" />
-                                </NavLink>
+                            <NavLink
+                                onClick={() => {
+                                  MySwal.fire({
+                                    title: "Are you sure?",
+                                    text: "You won't be able to revert this!",
+                                    icon: "warning",
+                                    iconColor: "#0f766e", 
+                                    showCancelButton: true,
+                                    confirmButtonText: "Yes, delete it",
+                                    cancelButtonText: "Cancel",
+                                    buttonsStyling: false,
+                                    customClass: {
+                                      confirmButton:
+                                        "bg-teal-700 hover:bg-teal-900 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                      cancelButton:
+                                        "bg-red-600 hover:bg-red-800 text-white font-semibold px-5 py-2 rounded-lg transition-colors mx-2",
+                                    },
+                                  })
+                                  .then(async (result) => {
+                                    if (result.isConfirmed) {
+                                      await deleteData(row._id);
+                                    }
+                                  });
+                                }}
+                                className="w-8 h-8 bg-red-700 rounded-full flex items-center justify-center hover:bg-red-800"
+                              >
+                                <FaTrash className="text-white" />
+                              </NavLink>
+
                               </td>
                             </tr>
                           </tbody>
@@ -201,9 +212,9 @@ const ProductListPage = () => {
                         <tbody>
                           <tr className="border-b dark:border-gray-700">
                             <th
-                              colSpan={6}
+                              colSpan={9}
                               scope="row"
-                              className=" text-center px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                              className="  px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white text-center"
                             >
                               No Data Found
                             </th>

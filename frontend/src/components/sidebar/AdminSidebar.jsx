@@ -49,4 +49,6 @@ const Sidebar = ({ isSidebarOpen, closeSidebar }) => {
   );
 };
 
+
+
 export default Sidebar;

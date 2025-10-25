@@ -30,4 +30,11 @@ const ProductUpdateDto = Joi.object({
   updatedBy: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).optional().default(null),
 }).unknown();
 
-export { ProductCreateDto, ProductUpdateDto };
+// Review Create DTO
+const ReviewCreateDto = Joi.object({
+  rating: Joi.number().min(1).max(5).required(),
+  review: Joi.string().optional().allow(null, '').default(""),
+}).unknown();
+
+
+export { ProductCreateDto, ProductUpdateDto, ReviewCreateDto };

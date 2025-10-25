@@ -1,7 +1,34 @@
 import React from "react";
-import { useController } from "react-hook-form";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { useController } from "react-hook-form";
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css'; // important
+
+export const HtmlEditor = ({ control, name, errorMsg = null }) => {
+  const { field } = useController({ control, name });
+
+  return (
+    <div className="mb-3">
+      <ReactQuill
+        theme="snow"
+        value={field.value || ""}
+        onChange={field.onChange}
+        onBlur={field.onBlur}
+        modules={{
+          toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+          ]
+        }}
+      />
+      {errorMsg && <span className="text-red-800">{errorMsg}</span>}
+    </div>
+  );
+};
 
 export const InputLabelComponent = ({ htmlFor, label }) => {
   return (
@@ -20,6 +47,7 @@ export const TextInputComponent = ({
   type = "text",
   control,
   name,
+  readonly=false,
   placeholder = "Enter your text...",
   errorMsg = null,
 }) => {
@@ -27,12 +55,15 @@ export const TextInputComponent = ({
     control: control,
     name: name,
   });
+
   return (
     <>
       <input
         type={type}
         id={name}
         {...field}
+        readOnly={readonly}
+        value={field.value ?? ""}  
         className="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
         placeholder={placeholder}
       />
@@ -41,17 +72,18 @@ export const TextInputComponent = ({
   );
 };
 
+
 export const SelectOptionComponent = ({
   name,
   control,
   options,
   errorMsg = null,
-  defaultValue = ""
+  defaultValue = "",
 }) => {
   const { field } = useController({
     control: control,
     name: name,
-    defaultValue: defaultValue
+    defaultValue: defaultValue,
   });
   const safeValue = field.value ?? "";
   return (
@@ -73,38 +105,41 @@ export const SelectOptionComponent = ({
   );
 };
 
-export const RadioButtonComponent = ({
-  options,
-  name,
-  control,
-  errorMsg = null,
-}) => {
-  const { field } = useController({
-    name: name,
-    control: control,
-  });
-  return (
-    <>
-      {options &&
-        options.map((radioOpts, index) => (
-          <div key={index} className="flex items-center me-4">
-            <input
-              {...field}
-              id={name + "-" + radioOpts.value}
-              type="radio"
-              value={radioOpts.value}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 me-1"
-            />
-            <InputLabelComponent
-              htmlFor={name + "-" + radioOpts.value}
-              label={radioOpts.label}
-            />
-          </div>
-        ))}
-      <span className="text-red-800">{errorMsg}</span>
-    </>
-  );
+export const RadioInputComponent = ({ control, name, options, errorMsg = null }) => {
+    const { field } = useController({
+        name: name,
+        control: control,
+    });
+
+    return (
+        <div className="flex flex-wrap gap-6 items-center">
+            {options?.map((radioOption, index) => (
+                <label
+                    key={index}
+                    htmlFor={`${name}-${radioOption.value}`}
+                    className="flex items-center gap-2 cursor-pointer text-gray-700 dark:text-gray-300"
+                >
+                    <input
+                        {...field}
+                        id={`${name}-${radioOption.value}`}
+                        type="radio"
+                        value={radioOption.value}
+                        checked={field.value === radioOption.value}
+                        className="w-4 h-4 text-teal-400 bg-gray-100 border-gray-300 focus:ring-2 focus:ring-teal-700 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    {radioOption.label}
+                </label>
+            ))}
+
+            {errorMsg && (
+                <span className="w-full text-sm text-red-600 mt-1">
+                    {errorMsg}
+                </span>
+            )}
+        </div>
+    );
 };
+
 
 export const TextAreaComponent = ({
   control,
@@ -140,24 +175,27 @@ export const ImageUploader = ({
   return (
     <>
       <div className="flex gap-3">
-        <div className={`${
-            thumb ? "w-3/4" : "w-full"
-          }`}>
-        <input
-          onChange={(e) => {
-            setImage(e.target.files[0]);
-          }}
-          className={`block mt-2 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400`}
-          id={name}
-          type="file"
-        />
+        <div className={`${thumb ? "w-3/4" : "w-full"}`}>
+          <input
+            onChange={(e) => {
+              setImage(e.target.files[0]);
+            }}
+            className={`block mt-2 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400`}
+            name={name}
+            id={name}
+            type="file"
+          />
         </div>
 
         {thumb && (
           <div className="w-1/4 flex items-center">
-            <img className="w-[45%] " src={
-              typeof thumb === 'string' ? thumb : URL.createObjectURL(thumb)
-            } alt="" />
+            <img
+              className="w-[45%] "
+              src={
+                typeof thumb === "string" ? thumb : URL.createObjectURL(thumb)
+              }
+              alt=""
+            />
           </div>
         )}
       </div>

@@ -132,7 +132,7 @@ const AddBannerPage = () => {
                       type="url"
                       name={"link"}
                       control={control}
-                      placeholder="Enter Banner Title"
+                      placeholder="Enter Banner URL"
                       errorMsg={errors?.link?.message}
                     />
                   </div>

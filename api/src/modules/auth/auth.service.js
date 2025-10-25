@@ -26,6 +26,7 @@ class AuthService {
         role: data.role,
         gender: data.gender,
         phone: data.phone,
+        address:data.address,
         image: file ? await FileUploadService.uploadFile(file.path, "/users") : null,
         status: "inactive" ,
         activationToken: generateRandomString(6).toUpperCase(),
@@ -158,6 +159,22 @@ class AuthService {
             throw exception
         }
     }
+
+getListOfUsers = async (filter = {}) => {
+  try {
+    const users = await UserModel.find({
+      ...filter,
+      status: "active",   
+    })
+      .select("-password -activationToken -expiryTime")
+      .sort({ name: 1 });  
+
+    return users;
+  } catch (exception) {
+    throw exception;
+  }
+};
+
 }
 
 const authSvc = new AuthService();

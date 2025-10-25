@@ -1,3 +1,4 @@
+import axiosInstance from "../../config/axios.config";
 import HttpService from "../../services/http.service";
 
 class AuthService extends HttpService {
@@ -10,14 +11,19 @@ class AuthService extends HttpService {
        }
     }
 
-    activateUserByOtp = async(data)=>{
-        try{
-            const response = await this.postRequest("/auth/activate", data)
-            return response
-        }catch(exception){
-            throw exception  
-        }
-    }
+  activateUserByOtp = async (data) => {
+  try {
+    const response = await axiosInstance.post("/auth/activate", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response;
+  } catch (exception) {
+    throw exception;
+  }
+};
+
 
     loginUser = async(credentials) =>{
         try{
@@ -53,6 +59,16 @@ class AuthService extends HttpService {
             throw exception
         }
     }
+
+    getUsersByRole = async(filter)=>{
+        try{
+            const response = await this.getRequest("/auth/user-by-type", {auth:true, params: filter});
+            return response;
+        }catch(exception){
+            throw exception
+        }
+    }
+        
 }
 
 const authSvc = new AuthService();

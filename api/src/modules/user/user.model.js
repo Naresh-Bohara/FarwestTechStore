@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const AddressSchema = new mongoose.Schema({
-    streetName: String,
-    houseNo: String, 
-    wardNo: Number,
-    municipality: String,
-    district: String,
-    province: String
-})
+// const AddressSchema = new mongoose.Schema({
+//     streetName: String,
+//     houseNo: String, 
+//     wardNo: Number,
+//     municipality: String,
+//     district: String,
+//     province: String
+// })
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -43,6 +43,11 @@ const UserSchema = new mongoose.Schema({
         enum: ['active', 'inactive'],
         default: "inactive"
     },
+    geocoordinates: {
+        lat:String,
+        long: String
+    },
+
     activationToken: String,
         forgetToken: String,
         expiryTime: Date,
