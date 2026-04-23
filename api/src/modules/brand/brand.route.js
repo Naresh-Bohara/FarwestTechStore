@@ -9,6 +9,7 @@ import brandCtrl from "./brand.controller.js";
 const brandRouter = Router();
 
 brandRouter.get("/home-brand", brandCtrl.getForHomePage);
+brandRouter.get("/home/with-products", brandCtrl.getBrandsWithProducts);
 brandRouter.get("/:slug/by-slug", brandCtrl.getDetailBySlug)
 
 // group

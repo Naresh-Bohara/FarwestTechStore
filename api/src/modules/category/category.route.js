@@ -9,6 +9,7 @@ import categoryCtrl from "./category.controller.js";
 const categoryRouter = Router();
 
 categoryRouter.get("/home-category", categoryCtrl.getForHomePage)
+categoryRouter.get("/home/with-products", categoryCtrl.getCategoriesWithProducts); 
 categoryRouter.get("/:slug/by-slug", categoryCtrl.detailBySlug)
 
 // group

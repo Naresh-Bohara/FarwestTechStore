@@ -134,6 +134,60 @@ class BrandController {
     }
   };
 
+  getBrandsWithProducts = async (req, res, next) => {
+  try {
+    // Get active brands for homepage
+    const brands = await brandSvc.listAllBrandData({
+      limit: 8, // Show 8 brands on homepage
+      skip: 0,
+      filter: { status: "active" }
+    });
+
+    // For each brand, fetch 4 products with reviews
+    const brandsWithProducts = await Promise.all(
+      brands.map(async (brand) => {
+        const products = await productSvc.listAllProductData({
+          limit: 4, // Show 4 products per brand
+          skip: 0,
+          filter: {
+            status: "active",
+            brand: brand._id
+          }
+        });
+        
+        return {
+          _id: brand._id,
+          title: brand.title,
+          slug: brand.slug,
+          image: brand.image,
+          description: brand.description,
+          products: products.map(product => ({
+            _id: product._id,
+            title: product.title,
+            slug: product.slug,
+            price: product.price,
+            discount: product.discount,
+            actualAmount: product.actualAmount,
+            images: product.images,
+            avgRating: product.avgRating || 0,
+            totalReviews: product.totalReviews || 0
+          }))
+        };
+      })
+    );
+
+    res.json({
+      data: brandsWithProducts,
+      message: "Brands with products fetched successfully",
+      status: "BRAND_PRODUCTS_SUCCESS",
+      options: null
+    });
+  } catch (exception) {
+    console.log("getBrandsWithProducts: ", exception);
+    next(exception);
+  }
+};
+
   getDetailBySlug = async (req, res, next) => {
     try {
       const slug = req.params.slug;

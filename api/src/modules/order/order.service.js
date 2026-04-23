@@ -1,8 +1,9 @@
 import HttpResponse from "../../constants/response-status.contants.js";
+import FileUploadService from "../../services/cloudinary.service.js";
 import mailSvc from "../../services/mail.service.js";
 import CartModel from "./order-detail.model.js";
 import OrderModel from "./order.model.js";
-import TransactionModel from "./transaction.model.js";
+import mongoose from "mongoose";
 
 class OrderService {
   findCartByFilter = async (filter) => {
@@ -13,7 +14,7 @@ class OrderService {
           "title",
           "slug",
           "images",
-          "proce",
+          "price",
           "actualAmount",
           "discount",
         ])
@@ -48,7 +49,7 @@ class OrderService {
           "title",
           "slug",
           "images",
-          "proce",
+          "price",
           "actualAmount",
           "discount",
         ])
@@ -134,7 +135,7 @@ class OrderService {
       const tax = orderObj.tax;
       const serviceCharge = orderObj.serviceCharge;
       const discount = orderObj.discount; // Assuming discount is a value like 0.10 for 10% discount
-      
+
       // Find and populate cart items with product details
       const populatedItems = await CartModel.find({ _id: { $in: items } })
         .populate("productId", [
@@ -148,14 +149,14 @@ class OrderService {
           "subtotal"
         ])
         .exec();
-  
+
       // Calculate subtotal if it's not directly provided
       const subtotal = populatedItems.reduce((acc, item) => {
         const price = item.productId.price || 0;
         const quantity = item.quantity || 0;
         return acc + price * quantity;
       }, 0);
-      
+
       // Construct the email content
       let msg = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
@@ -173,14 +174,14 @@ class OrderService {
           <h3 style="color: #333;">Order Summary</h3>
           <ul style="font-size: 16px; color: #333;">
             ${populatedItems
-              .map((item) => {
-                if (item.productId && item.productId.title) {
-                  return `<li>${item.productId.title} <span style="font-size: 16px; color: green;"> X </span> ${item.quantity} - Rs. ${item.productId.price}</li>`;
-                } else {
-                  return `<li>Product not found <span style="font-size: 16px; color: green;"> X </span> ${item.quantity} - Rs. ${item.productId ? item.productId.price : 'N/A'}</li>`;
-                }
-              })
-              .join('')}
+          .map((item) => {
+            if (item.productId && item.productId.title) {
+              return `<li>${item.productId.title} <span style="font-size: 16px; color: green;"> X </span> ${item.quantity} - Rs. ${item.productId.price}</li>`;
+            } else {
+              return `<li>Product not found <span style="font-size: 16px; color: green;"> X </span> ${item.quantity} - Rs. ${item.productId ? item.productId.price : 'N/A'}</li>`;
+            }
+          })
+          .join('')}
           </ul>
   
           <h3 style="color: #333;">Order Breakdown</h3>
@@ -203,7 +204,7 @@ class OrderService {
           </footer>
         </div>
       `;
-  
+
       // Send the email
       await mailSvc.sendEmail(email, `Order Confirmation - #${orderId}`, msg);
       return true;
@@ -211,58 +212,230 @@ class OrderService {
       console.error("Error sending order confirmation email:", exception);
       throw exception;
     }
-}
+  }
 
-  getAllOrders = async(filter)=>{
-    try{
-      const data = await OrderModel.aggregate([
-        {
-          '$match': {
-            filter
-          }
-        }, {
-          '$lookup': {
-            'from': 'carts', 
-            'localField': '_id', 
-            'foreignField': 'orderId', 
-            'as': 'detail'
-          }
-        }, {
-          '$lookup': {
-            'from': 'users', 
-            'localField': 'buyerId', 
-            'foreignField': '_id', 
-            'as': 'buyer'
-          }
-        }, {
-          '$unwind': {
-            'path': '$buyer', 
-            'preserveNullAndEmptyArrays': true
-          }
-        }
-      ])
-      return data;
-    }catch(exception){
+  getAllOrders = async (filter = {}, sellerId = null) => {
+    try {
+     const pipeline = [
+  { $match: filter },
+
+  {
+    $lookup: {
+      from: "carts",
+      localField: "_id",
+      foreignField: "orderId",
+      as: "items"
+    }
+  },
+
+  {
+    $lookup: {
+      from: "users",
+      localField: "buyerId",
+      foreignField: "_id",
+      as: "buyer"
+    }
+  },
+
+  {
+    $unwind: {
+      path: "$buyer",
+      preserveNullAndEmptyArrays: true
+    }
+  },
+
+  {
+    $unwind: {
+      path: "$items",
+      preserveNullAndEmptyArrays: true
+    }
+  },
+
+  ...(sellerId
+    ? [{ $match: { "items.seller": sellerId } }]
+    : []),
+
+  {
+    $group: {
+      _id: "$_id",
+      buyerId: { $first: "$buyerId" },
+      subtotal: { $first: "$subtotal" },
+      total: { $first: "$total" },
+      status: { $first: "$status" },
+      buyer: { $first: "$buyer" },
+      items: { $push: "$items" }
+    }
+  },
+
+  {
+    $project: {
+      "buyer.password": 0,
+      "buyer.__v": 0,
+      "buyer.activationToken": 0,
+      "buyer.expiryTime": 0
+    }
+  }
+];
+
+      return await OrderModel.aggregate(pipeline);
+    } catch (exception) {
       console.log("getAllOrders", exception);
       throw exception;
     }
-  }
+  };
 
-  createTransaction = async(orderId, transactionData)=>{
-    try{
-      if(transactionData.paymentMethods === "cash" || transactionData.paymentMethods === "other"){
-        transactionData.transactionCode = Date.now();
+  qrCheckout = async ({ body, file, user }) => {
+    try {
+      const {
+        name,
+        email,
+        phone,
+        address,
+        gender,
+        cartItems,
+      } = body;
+
+      const parsedCart = JSON.parse(cartItems);
+
+      // 1. Get cart
+      const cartDetails = await this.findCartByFilter({
+        _id: { $in: parsedCart },
+        orderId: null,
+      });
+
+      if (!cartDetails || cartDetails.length !== parsedCart.length) {
+        throw {
+          status: 400,
+          message: "Invalid cart items",
+        };
       }
-      transactionData.transactionDate = new Date();
-      transactionData.status ="paid";
-      transactionData.orderId = orderId; 
 
-      const transaction = new TransactionModel(transactionData);
-      return await transaction.save();
-    }catch(exception){
-      throw exception;
+      // 2. Upload screenshot
+      let screenshotUrl = null;
+      if (file?.path) {
+        screenshotUrl = await FileUploadService.uploadFile(
+          file.path,
+          "payments"
+        );
+      }
+
+      // 3. Calculate price
+      let subtotal = 0;
+      cartDetails.forEach((cart) => {
+        subtotal += cart.productId.actualAmount * cart.quantity;
+      });
+
+      const tax = subtotal * 0.13;
+      const total = subtotal + tax + 100;
+
+      // 4. Create order
+      const orderObj = await this.createOrder({
+        buyerId: user._id,
+
+        name,
+        email,
+        phone,
+        address,
+        gender,
+
+        subtotal,
+        tax,
+        serviceCharge: 100,
+        total,
+
+        cartItems: parsedCart,
+
+        paymentMethod: "QR",
+        paymentStatus: "pending",
+        status: "pending",
+
+        paymentScreenshot: screenshotUrl,
+      });
+
+      // 5. Update cart
+      await Promise.all(
+        cartDetails.map((cart) => {
+          cart.orderId = orderObj._id;
+          cart.status = "ordered";
+          return cart.save();
+        })
+      );
+
+      return orderObj;
+
+    } catch (err) {
+      console.log("qrCheckout error", err);
+      throw err;
     }
-  }
+  };
+
+  getOrderById = async (id) => {
+    try {
+        const data = await OrderModel.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(id)
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "carts",
+                    localField: "_id",
+                    foreignField: "orderId",
+                    as: "items"
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "buyerId",
+                    foreignField: "_id",
+                    as: "buyer"
+                }
+            },
+
+            {
+                $unwind: {
+                    path: "$buyer",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+
+            {
+                $project: {
+                    "buyer.password": 0,
+                    "buyer.__v": 0,
+                    "buyer.activationToken": 0,
+                    "buyer.expiryTime": 0
+                }
+            }
+        ]);
+
+        return data[0] || null;
+
+    } catch (err) {
+        console.log("getOrderById error", err);
+        throw err;
+    }
+};
+
+updateOrderById = async (id, data) => {
+    try {
+        const updated = await OrderModel.findByIdAndUpdate(
+            id,
+            { $set: data },
+            { new: true }
+        );
+
+        return updated;
+    } catch (err) {
+        console.log("updateOrderById error", err);
+        throw err;
+    }
+};
+
 }
 
 const orderSvc = new OrderService();

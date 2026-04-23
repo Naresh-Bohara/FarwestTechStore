@@ -9,6 +9,7 @@ import productCtrl from "./product.controller.js";
 const productRouter = Router();
 
 productRouter.get("/home-product", productCtrl.getForHomePage)
+productRouter.get("/public/all", productCtrl.listAllPublicProducts);
 productRouter.get("/:slug/by-slug", productCtrl.getDetailBySlug)
 productRouter.get("/:id/user-review-count",checkLogin,checkPermission(['admin', 'customer']), productCtrl.getUserReviewCount
 );

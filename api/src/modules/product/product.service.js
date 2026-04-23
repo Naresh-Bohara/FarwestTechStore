@@ -126,6 +126,52 @@ class ProductService {
         }
     };
 
+    // ===== NEW PUBLIC METHOD FOR ALL PRODUCTS =====
+listAllPublicProductData = async ({ limit = 12, skip = 0, filter = {}, sort = { createdAt: -1 } }) => {
+    try {
+        const products = await ProductModel.aggregate([
+            { $match: filter },
+            {
+                $lookup: {
+                    from: "reviews",
+                    localField: "_id",
+                    foreignField: "productId",
+                    as: "reviews"
+                }
+            },
+            {
+                $addFields: {
+                    avgRating: { $avg: "$reviews.rating" },
+                    totalReviews: { $size: "$reviews" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "categoryData"
+                }
+            },
+            {
+                $lookup: {
+                    from: "brands",
+                    localField: "brand",
+                    foreignField: "_id",
+                    as: "brandData"
+                }
+            },
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: limit }
+        ]);
+
+        return products;
+    } catch (exception) {
+        throw exception;
+    }
+};
+
 
     // Get product by ID
     getDataById = async (id) => {

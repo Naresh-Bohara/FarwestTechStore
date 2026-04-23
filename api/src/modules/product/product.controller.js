@@ -81,6 +81,83 @@ class ProductController {
         }
     }
 
+    // ===== NEW PUBLIC METHOD FOR ALL PRODUCTS PAGE =====
+listAllPublicProducts = async (req, res, next) => {
+    try {
+        // pagination
+        let page = +req.query.page || 1;
+        let limit = +req.query.limit || 12;
+        let skip = (page - 1) * limit;
+
+        // filter - ONLY ACTIVE PRODUCTS
+        let filter = { status: "active" };
+        
+        // search by keyword
+        if (req.query.keyword) {
+            filter.$or = [
+                { title: new RegExp(req.query.keyword, 'i') },
+                { description: new RegExp(req.query.keyword, 'i') },
+            ];
+        }
+        
+        // filter by category
+        if (req.query.category) {
+            filter.category = req.query.category;
+        }
+        
+        // filter by brand
+        if (req.query.brand) {
+            filter.brand = req.query.brand;
+        }
+
+        // sorting
+        let sort = { createdAt: -1 }; // default: newest first
+        if (req.query.sort) {
+            switch(req.query.sort) {
+                case 'price-low':
+                    sort = { price: 1 };
+                    break;
+                case 'price-high':
+                    sort = { price: -1 };
+                    break;
+                case 'name-asc':
+                    sort = { title: 1 };
+                    break;
+                case 'name-desc':
+                    sort = { title: -1 };
+                    break;
+                case 'rating':
+                    sort = { avgRating: -1 };
+                    break;
+            }
+        }
+
+        let data = await productSvc.listAllPublicProductData({
+            limit: limit,
+            skip: skip,
+            filter: filter,
+            sort: sort
+        });
+
+        let totalCount = await productSvc.totalCount(filter);
+        
+        res.json({
+            data: data,
+            message: "Products fetched successfully",
+            status: "PRODUCT_LIST_SUCCESS",
+            options: {
+                page: page,
+                limit: limit,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / limit)
+            }
+        });
+    } catch (exception) {
+        console.log("listAllPublicProducts: ", exception);
+        next(exception);
+    }
+};
+
     getById = async (req, res, next) => {
         try {
             const id = req.params.id;

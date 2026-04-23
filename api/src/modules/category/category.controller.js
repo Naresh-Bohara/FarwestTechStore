@@ -137,6 +137,59 @@ class CategoryController {
     }
   };
 
+  getCategoriesWithProducts = async (req, res, next) => {
+  try {
+    // Get active categories for homepage
+    const categories = await categorySvc.listAllCategoryData({
+      limit: 8, // Show 8 categories on homepage
+      skip: 0,
+      filter: { status: "active" }
+    });
+
+    // For each category, fetch 4 products with reviews
+    const categoriesWithProducts = await Promise.all(
+      categories.map(async (category) => {
+        const products = await productSvc.listAllProductData({
+          limit: 4, // Show 4 products per category
+          skip: 0,
+          filter: {
+            status: "active",
+            category: category._id
+          }
+        });
+        
+        return {
+          _id: category._id,
+          title: category.title,
+          slug: category.slug,
+          image: category.image,
+          products: products.map(product => ({
+            _id: product._id,
+            title: product.title,
+            slug: product.slug,
+            price: product.price,
+            discount: product.discount,
+            actualAmount: product.actualAmount,
+            images: product.images,
+            avgRating: product.avgRating || 0,
+            totalReviews: product.totalReviews || 0
+          }))
+        };
+      })
+    );
+
+    res.json({
+      data: categoriesWithProducts,
+      message: "Categories with products fetched successfully",
+      status: "CATEGORY_PRODUCTS_SUCCESS",
+      options: null
+    });
+  } catch (exception) {
+    console.log("getCategoriesWithProducts: ", exception);
+    next(exception);
+  }
+};
+
   detailBySlug = async (req, res, next) => {
     try {
       const slug = req.params.slug;

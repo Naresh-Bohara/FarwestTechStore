@@ -1,7 +1,8 @@
 import http from "http";
 import { Server } from "socket.io";
 import application from "./src/config/express.config.js";
-
+import dotenv from "dotenv";
+dotenv.config();
 const args = process.argv.splice(2) || null
 let port = 9005;
 let host = '127.0.0.1'
