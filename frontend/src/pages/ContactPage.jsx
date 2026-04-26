@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFacebookF,
@@ -6,11 +6,16 @@ import {
   faInstagram,
   faLinkedin,
 } from "@fortawesome/free-brands-svg-icons";
+import { faSpinner, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "react-toastify";
 
 const ContactPage = () => {
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   // Define validation schema using Yup
   const validationSchema = Yup.object().shape({
     name: Yup.string()
@@ -23,15 +28,36 @@ const ContactPage = () => {
   });
 
   const {
-    control,
+    register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
   });
 
-  const submitEvent = (data) => {
-    console.log("Form Data:", data);
+  const submitEvent = async (data) => {
+    setLoading(true);
+    
+    try {
+      // Simulate API call (remove this setTimeout in production)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // For now, just show success message
+      toast.success("Message sent successfully! We'll get back to you soon.");
+      setIsSubmitted(true);
+      reset(); // Clear form
+      
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 3000);
+      
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,7 +84,7 @@ const ContactPage = () => {
           <p className="text-gray-700 mb-2">
             Phone:{" "}
             <a href="tel:+977-9840770641" className="text-teal-600">
-              +977- 9840770641
+              +977-9840770641
             </a>
           </p>
           <p className="text-gray-700 mb-4">Address: Kailali, Nepal</p>
@@ -123,6 +149,16 @@ const ContactPage = () => {
           <h3 className="text-2xl font-semibold text-[#213245] mb-4">
             Get in Touch
           </h3>
+          
+          {/* Success Message */}
+          {isSubmitted && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+              <p className="text-center font-medium">
+                ✓ Message sent successfully!
+              </p>
+            </div>
+          )}
+          
           <div className="mb-4">
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -138,12 +174,14 @@ const ContactPage = () => {
               }`}
               placeholder="Your Name"
               style={{ borderRadius: "10px" }}
-              {...control.register("name")}
+              {...register("name")}
+              disabled={loading}
             />
             {errors.name && (
               <p className="text-red-500 text-sm">{errors.name.message}</p>
             )}
           </div>
+          
           <div className="mb-4">
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -159,12 +197,14 @@ const ContactPage = () => {
               }`}
               placeholder="Your Email"
               style={{ borderRadius: "10px" }}
-              {...control.register("email")}
+              {...register("email")}
+              disabled={loading}
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email.message}</p>
             )}
           </div>
+          
           <div className="mb-4">
             <label
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -180,17 +220,30 @@ const ContactPage = () => {
               placeholder="Your Message"
               rows="4"
               style={{ borderRadius: "10px", resize: "none" }}
-              {...control.register("message")}
+              {...register("message")}
+              disabled={loading}
             />
             {errors.message && (
               <p className="text-red-500 text-sm">{errors.message.message}</p>
             )}
           </div>
+          
           <button
             type="submit"
-            className="w-full bg-[#213245] text-white font-bold py-2 rounded-md hover:bg-[#D5F5F6] hover:text-[#213245] transition duration-300"
+            disabled={loading}
+            className="w-full bg-[#213245] text-white font-bold py-2 rounded-md hover:bg-[#D5F5F6] hover:text-[#213245] transition duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Send Message
+            {loading ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPaperPlane} />
+                Send Message
+              </>
+            )}
           </button>
         </form>
       </div>

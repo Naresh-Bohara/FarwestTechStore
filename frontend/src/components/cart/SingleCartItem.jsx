@@ -25,24 +25,42 @@ const SingleCartItem = ({ cartItem }) => {
     }
   };
 
+  // Safely access product data with optional chaining
+  const product = cartItem?.productId || {};
+  const productTitle = product?.title || 'Unknown Product';
+  const productSlug = product?.slug || '#';
+  const productPrice = product?.actualAmount || product?.price || 0;
+  const quantity = cartItem?.quantity || 1;
+
   return (
     <div className="flex items-center justify-between gap-4 border-b border-gray-200 py-3 dark:border-gray-700">
       {/* Left - Product info */}
       <div className="flex-1">
         <NavLink
-          to={`/products/${cartItem.productId.slug}`}
+          to={`/products/${productSlug}`}
           className="block truncate text-sm font-semibold text-gray-900 hover:underline dark:text-white"
         >
-          {cartItem.productId.title}
+          {productTitle}
         </NavLink>
         <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-          {new Intl.NumberFormat("np", {
+          {new Intl.NumberFormat("en-IN", { // Changed from "np" to "en-IN"
             style: "currency",
             currency: "NPR",
-          }).format(cartItem.productId.actualAmount / 100)}
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(productPrice/100)} {/* Removed /100 */}
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          Qty: {cartItem.quantity}
+          Qty: {quantity}
+        </p>
+        {/* Show subtotal for this item */}
+        <p className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+          Subtotal: {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "NPR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format((productPrice * quantity)/100)}
         </p>
       </div>
 

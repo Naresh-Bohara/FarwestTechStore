@@ -171,6 +171,7 @@ const AddCategoryPage = () => {
                     />
                   </div>
                 </div>
+                <input type="text" name="isbnNo" placeholder="Enter Isbn no" />
 
                 {/* Image Uploader */}
                 <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 mb-3">

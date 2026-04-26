@@ -119,7 +119,7 @@ const HomeHeader = () => {
             </Dropdown>
           )}
           <NavLink
-            to="/all-products"
+            to="/products"
             className="text-gray-700 dark:text-gray-200 hover:text-teal-500 font-medium"
           >
             All Products
@@ -130,13 +130,13 @@ const HomeHeader = () => {
           >
             Contact
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/cart"
             className="text-gray-700 dark:text-gray-200 hover:text-teal-500 flex items-center font-medium"
           >
             <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5 mr-1" />{" "}
             Cart
-          </NavLink>
+          </NavLink> */}
         </div>
 
         <div className="flex items-center space-x-3">
@@ -276,7 +276,7 @@ const HomeHeader = () => {
             </Dropdown>
           )}
           <NavLink
-            to="/all-products"
+            to="/products"
             className="block text-gray-800 dark:text-gray-200 hover:text-teal-500 font-medium"
             onClick={toggleSidebar}
           >
@@ -289,14 +289,14 @@ const HomeHeader = () => {
           >
             Contact
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/cart"
             className="block text-gray-800 dark:text-gray-200 hover:text-teal-500 items-center font-medium"
             onClick={toggleSidebar}
           >
             <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5 mr-1" />{" "}
             Cart
-          </NavLink>
+          </NavLink> */}
         </nav>
       </div>
     </>

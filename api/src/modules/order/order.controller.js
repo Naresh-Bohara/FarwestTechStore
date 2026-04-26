@@ -155,7 +155,8 @@ class OrderController {
                 subtotal += cart.productId.actualAmount * cart.quantity;
             });
 
-            let tax = ((subtotal - discount) * process.env.TAX_AMOUNT)
+            // let tax = ((subtotal - discount) * process.env.TAX_AMOUNT)
+            let tax = 0
 
             const total = (subtotal - discount + tax + 100)
 
@@ -448,6 +449,53 @@ cancelOrder = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
+};
+
+getAllOrders = async (req, res, next) => {
+  try {
+    const user = req.loggedInUser;
+
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        detail: null,
+        message: "Access denied",
+        status: "FORBIDDEN",
+        options: null
+      });
+    }
+
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const parsedPage = parseInt(page);
+    const parsedLimit = parseInt(limit);
+
+    let filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    const { data, total } = await orderSvc.getAllOrders(
+      filter,
+      null,
+      parsedPage,
+      parsedLimit
+    );
+
+    return res.json({
+      detail: data,
+      message: "All orders fetched successfully",
+      status: "ALL_ORDERS",
+      options: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
+      }
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 getSellerOrders = async (req, res, next) => {

@@ -79,6 +79,15 @@ class CategoryService extends HttpService {
             throw exception;
         }
     }
+
+    getCategoriesWithProducts = async()=>{
+        try{
+            let response = await this.getRequest("/category/home/with-products");
+            return response;
+        }catch(exception){
+            throw exception;
+        }
+    }
 }
 
 const categorySvc = new CategoryService();

@@ -70,6 +70,15 @@ class BrandService extends HttpService {
         }
     }
 
+    getBrandsWithProducts = async()=>{
+        try{
+            let response = await this.getRequest("/brand/home/with-products");
+            return response;
+        }catch(exception){
+            throw exception;
+        }
+    }
+
     getForHomePage = async()=>{
         try{
             let response = await this.getRequest("/brand/home-brand");

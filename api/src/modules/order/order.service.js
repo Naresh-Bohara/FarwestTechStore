@@ -214,75 +214,84 @@ class OrderService {
     }
   }
 
-  getAllOrders = async (filter = {}, sellerId = null) => {
-    try {
-     const pipeline = [
-  { $match: filter },
+getAllOrders = async (filter = {}, sellerId = null, page = 1, limit = 10) => {
+  try {
+    const skip = (page - 1) * limit;
 
-  {
-    $lookup: {
-      from: "carts",
-      localField: "_id",
-      foreignField: "orderId",
-      as: "items"
-    }
-  },
+    const pipeline = [
+      { $match: filter },
 
-  {
-    $lookup: {
-      from: "users",
-      localField: "buyerId",
-      foreignField: "_id",
-      as: "buyer"
-    }
-  },
+      {
+        $lookup: {
+          from: "carts",
+          localField: "_id",
+          foreignField: "orderId",
+          as: "items"
+        }
+      },
 
-  {
-    $unwind: {
-      path: "$buyer",
-      preserveNullAndEmptyArrays: true
-    }
-  },
+      ...(sellerId
+        ? [
+            {
+              $match: {
+                "items.seller": new mongoose.Types.ObjectId(sellerId)
+              }
+            }
+          ]
+        : []),
 
-  {
-    $unwind: {
-      path: "$items",
-      preserveNullAndEmptyArrays: true
-    }
-  },
+      {
+        $lookup: {
+          from: "users",
+          localField: "buyerId",
+          foreignField: "_id",
+          as: "buyer"
+        }
+      },
 
-  ...(sellerId
-    ? [{ $match: { "items.seller": sellerId } }]
-    : []),
+      {
+        $unwind: {
+          path: "$buyer",
+          preserveNullAndEmptyArrays: true
+        }
+      },
 
-  {
-    $group: {
-      _id: "$_id",
-      buyerId: { $first: "$buyerId" },
-      subtotal: { $first: "$subtotal" },
-      total: { $first: "$total" },
-      status: { $first: "$status" },
-      buyer: { $first: "$buyer" },
-      items: { $push: "$items" }
-    }
-  },
+      {
+        $project: {
+          "buyer.password": 0,
+          "buyer.__v": 0,
+          "buyer.activationToken": 0,
+          "buyer.expiryTime": 0
+        }
+      },
 
-  {
-    $project: {
-      "buyer.password": 0,
-      "buyer.__v": 0,
-      "buyer.activationToken": 0,
-      "buyer.expiryTime": 0
-    }
+      { $sort: { createdAt: -1 } },
+
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      }
+    ];
+
+    const result = await OrderModel.aggregate(pipeline);
+
+    return {
+      data: result[0].data,
+      total: result[0].totalCount[0]?.count || 0
+    };
+
+  } catch (exception) {
+    console.log("getAllOrders", exception);
+    throw exception;
   }
-];
-
-      return await OrderModel.aggregate(pipeline);
-    } catch (exception) {
-      console.log("getAllOrders", exception);
-      throw exception;
-    }
-  };
+};
 
   qrCheckout = async ({ body, file, user }) => {
     try {
@@ -325,8 +334,9 @@ class OrderService {
         subtotal += cart.productId.actualAmount * cart.quantity;
       });
 
-      const tax = subtotal * 0.13;
-      const total = subtotal + tax + 100;
+      // const tax = subtotal * 0.13;
+      const tax = 0
+      const total = subtotal + tax + 10000;
 
       // 4. Create order
       const orderObj = await this.createOrder({
@@ -340,7 +350,7 @@ class OrderService {
 
         subtotal,
         tax,
-        serviceCharge: 100,
+        serviceCharge: 10000,
         total,
 
         cartItems: parsedCart,

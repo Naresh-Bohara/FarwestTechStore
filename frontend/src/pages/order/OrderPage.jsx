@@ -1,129 +1,138 @@
-import React, { useState } from 'react';
-import { FaCheckCircle, FaTimesCircle, FaShippingFast, FaCog } from 'react-icons/fa';
+import { useEffect, useState } from "react";
+import { FaBox, FaCheckCircle, FaTimesCircle, FaClock, FaMoneyBill } from "react-icons/fa";
+import orderSvc from "./order.service";
+
+const statusStyle = {
+  pending: { icon: <FaClock />, color: "text-yellow-500", bg: "bg-yellow-100" },
+  processing: { icon: <FaBox />, color: "text-blue-500", bg: "bg-blue-100" },
+  shipped: { icon: <FaBox />, color: "text-indigo-500", bg: "bg-indigo-100" },
+  completed: { icon: <FaCheckCircle />, color: "text-green-600", bg: "bg-green-100" },
+  cancelled: { icon: <FaTimesCircle />, color: "text-red-500", bg: "bg-red-100" },
+};
+
+const paymentStyle = {
+  pending: "text-yellow-500",
+  paid: "text-green-600",
+  failed: "text-red-500",
+};
 
 const OrderPage = () => {
-  const initialOrders = [
-    {
-      orderId: 'ORD12345',
-      userName: 'Naresh Bohara',
-      dateCreated: 'Jul 17, 2024 5:27 PM',
-      dateUpdated: 'Oct 6, 2024 5:35 PM',
-      items: [
-        { name: 'Redmi Note 11 Pro', quantity: 1, price: 38000 },
-      ],
-      status: 'Processing',
-    },
-    {
-      orderId: 'ORD12346',
-      userName: 'Naresh Bohara',
-      dateCreated: 'Jul 17, 2024 5:27 PM',
-      dateUpdated: 'Jul 17, 2024 5:27 PM',
-      items: [
-        { name: 'Product A', quantity: 2, price: 1500 },
-      ],
-      status: 'Processing',
-    },
-    {
-      orderId: 'ORD12347',
-      userName: 'Naresh Bohara',
-      dateCreated: 'Jul 17, 2024 5:27 PM',
-      dateUpdated: 'Jul 17, 2024 10:41 AM',
-      items: [
-        { name: 'Product B', quantity: 1, price: 2500 },
-      ],
-      status: 'Processing',
-    },
-  ];
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [orders, setOrders] = useState(initialOrders);
-
-  const changeStatus = (index, newStatus) => {
-    const updatedOrders = [...orders];
-    updatedOrders[index].status = newStatus;
-    setOrders(updatedOrders);
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Delivered':
-        return <FaCheckCircle className="text-green-500" />;
-      case 'Shipped':
-        return <FaShippingFast className="text-blue-500" />;
-      case 'Cancelled':
-        return <FaTimesCircle className="text-red-500" />;
-      case 'Processing':
-        return <FaCog className="animate-spin text-yellow-500" />;
-      default:
-        return null;
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await orderSvc.getMyOrders();
+      setOrders(res?.detail?.data || []);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Loading orders...
+      </div>
+    );
+  }
+
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-      <h1 className="text-2xl font-bold text-teal-950 py-3 border-b-2 border-teal-700">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
+
+      <h1 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
         My Orders
       </h1>
-      <div className="mx-auto my-3 px-4 lg:px-12">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 sm:p-6">
-          {orders.map((order, index) => (
-            <div key={order.orderId} className="mb-6 border-b pb-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Order #{order.orderId}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    User: {order.userName}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Created At: {order.dateCreated}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Updated At: {order.dateUpdated}
-                  </p>
-                </div>
-                <div className="text-xl mt-2 sm:mt-0">
-                  {getStatusIcon(order.status)}{' '}
-                  <span className="text-sm font-semibold">
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-              <ul className="mb-3">
-                {order.items.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between text-sm text-gray-700 dark:text-gray-300"
+
+      {orders.length === 0 ? (
+        <p className="text-center text-gray-500">No orders found</p>
+      ) : (
+        <div className="space-y-5">
+
+          {orders.map((order) => {
+            const status = statusStyle[order.status] || statusStyle.pending;
+
+            return (
+              <div
+                key={order._id}
+                className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-5"
+              >
+
+                {/* TOP INFO */}
+                <div className="flex flex-col md:flex-row justify-between gap-3">
+
+                  <div>
+                    <p className="text-sm text-gray-500">
+                      Order ID: <span className="font-medium">{order._id}</span>
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                      Date: {new Date(order.createdAt).toLocaleString()}
+                    </p>
+
+                    <p className="text-sm">
+                      Payment:{" "}
+                      <span className={paymentStyle[order.paymentStatus]}>
+                        {order.paymentStatus}
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* STATUS */}
+                  <div
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full ${status.bg}`}
                   >
-                    <span>
-                      {item.name} (x{item.quantity})
+                    <span className={status.color}>{status.icon}</span>
+                    <span className={`text-sm font-semibold ${status.color}`}>
+                      {order.status.toUpperCase()}
                     </span>
-                    <span>Rs. {item.price}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex flex-col sm:flex-row justify-between items-center">
-                <div className="text-right text-lg font-bold text-teal-700 dark:text-teal-400 mb-2 sm:mb-0">
-                  Total: Rs. {order.items.reduce((acc, item) => acc + item.price * item.quantity, 0)}
+                  </div>
+
                 </div>
-                <div>
-                  <select
-                    value={order.status}
-                    onChange={(e) => changeStatus(index, e.target.value)}
-                    className="border rounded-md p-1 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  >
-                    <option value="Processing">Processing</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
+
+                {/* ITEMS */}
+                <div className="mt-4 border-t pt-3">
+                  {order.items?.map((item) => (
+                    <div
+                      key={item._id}
+                      className="flex justify-between text-sm text-gray-600 dark:text-gray-300 py-1"
+                    >
+                      <span>
+                        Product × {item.quantity}
+                      </span>
+                      <span>Rs. {item.amount/100}</span>
+                    </div>
+                  ))}
                 </div>
+
+                {/* TOTAL */}
+                <div className="mt-4 border-t pt-3 flex justify-between items-center">
+
+                  <div className="text-sm text-gray-500">
+                    Buyer: {order.buyer?.name}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-lg font-bold text-teal-600">
+                    <FaMoneyBill />
+                    Rs. {order.total/100}
+                  </div>
+
+                </div>
+
               </div>
-            </div>
-          ))}
+            );
+          })}
+
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 };
 

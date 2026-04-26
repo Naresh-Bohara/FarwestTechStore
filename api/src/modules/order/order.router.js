@@ -8,16 +8,39 @@ import { uploadFile } from "../../middlewares/multipart-parser.middleware.js";
 
 const orderRouter = Router();
 
-orderRouter.get("/my", checkLogin, orderCtrl.getMyOrders)
-orderRouter.get("/:id", checkLogin, orderCtrl.getSingleOrder);
+// CUSTOMER ROUTES
+orderRouter.get("/my", checkLogin, orderCtrl.getMyOrders);
 
-orderRouter.post("/add-to-cart", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(AddToCartDTO), orderCtrl.addToCart)
+orderRouter.get(
+  "/my-cart",
+  checkLogin,
+  checkPermission(["customer", "admin"]),
+  orderCtrl.viewAllCartItems
+);
 
-orderRouter.get("/my-cart", checkLogin, checkPermission(['customer', 'admin']), orderCtrl.viewAllCartItems)
+orderRouter.post(
+  "/add-to-cart",
+  checkLogin,
+  checkPermission(["customer", "admin"]),
+  bodyValidator(AddToCartDTO),
+  orderCtrl.addToCart
+);
 
-orderRouter.put("/remove-cart-item", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(RemoveFromCartDTO), orderCtrl.removeFromCart)
+orderRouter.put(
+  "/remove-cart-item",
+  checkLogin,
+  checkPermission(["customer", "admin"]),
+  bodyValidator(RemoveFromCartDTO),
+  orderCtrl.removeFromCart
+);
 
-orderRouter.post("/checkout", checkLogin, checkPermission(['customer', 'admin']), bodyValidator(CheckoutDTO), orderCtrl.checkout) 
+orderRouter.post(
+  "/checkout",
+  checkLogin,
+  checkPermission(["customer", "admin"]),
+  bodyValidator(CheckoutDTO),
+  orderCtrl.checkout
+);
 
 orderRouter.post(
   "/qr-payment",
@@ -27,7 +50,30 @@ orderRouter.post(
   orderCtrl.qrCheckout
 );
 
-orderRouter.put( "/:id/status", checkLogin, checkPermission(["admin"]), orderCtrl.updateOrderStatus );
+
+// SELLER ROUTES
+orderRouter.get(
+  "/seller/orders",
+  checkLogin,
+  checkPermission(["seller"]),
+  orderCtrl.getSellerOrders
+);
+
+// ADMIN ROUTES
+
+orderRouter.get(
+  "/all",
+  checkLogin,
+  checkPermission(["admin"]),
+  orderCtrl.getAllOrders
+);
+
+orderRouter.put(
+  "/:id/status",
+  checkLogin,
+  checkPermission(["admin"]),
+  orderCtrl.updateOrderStatus
+);
 
 orderRouter.put(
   "/:id/verify-payment",
@@ -43,11 +89,7 @@ orderRouter.put(
   orderCtrl.cancelOrder
 );
 
-orderRouter.get(
-  "/seller/orders",
-  checkLogin,
-  checkPermission(["seller"]),
-  orderCtrl.getSellerOrders
-);
+// DYNAMIC ROUTE (ALWAYS LAST)
+orderRouter.get("/:id", checkLogin, orderCtrl.getSingleOrder);
 
 export default orderRouter;

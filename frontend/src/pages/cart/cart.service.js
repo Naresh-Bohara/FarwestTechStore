@@ -45,6 +45,18 @@ class CartService extends HttpService{
             throw(exception);
         }
     }
+
+     qrCheckout = async (formData) => {
+  try {
+    return await this.postRequest("/order/qr-payment", formData, {
+      auth: true,
+      file: true,   
+    });
+  } catch (e) {
+    throw e;
+  }
+};
+
 }
 
 const cartSvc = new CartService();

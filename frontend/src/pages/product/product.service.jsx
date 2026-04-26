@@ -28,6 +28,37 @@ class ProductService extends HttpService {
     }
   };
 
+  // In product.service.js - UPDATE THIS METHOD
+getAllProducts = async ({ 
+  page = 1, 
+  limit = 12, 
+  keyword = '', 
+  category = '', 
+  brand = '', 
+  minPrice = '', 
+  maxPrice = '', 
+  sort = '' 
+} = {}) => {
+  try {
+    let params = { page, limit };
+    
+    if (keyword) params.keyword = keyword;
+    if (category) params.category = category;
+    if (brand) params.brand = brand;
+    if (minPrice) params.minPrice = minPrice;
+    if (maxPrice) params.maxPrice = maxPrice;
+    if (sort) params.sort = sort;
+
+    const response = await this.getRequest("/product/public/all", {
+      params: params
+    });
+    return response;
+  } catch (exception) {
+    throw exception;
+  }
+};
+
+
   deleteProduct = async (productId) => {
     try {
       const response = await this.deleteRequest("/product/" + productId, {

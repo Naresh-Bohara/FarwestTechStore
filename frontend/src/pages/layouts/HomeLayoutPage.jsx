@@ -221,7 +221,7 @@ const HomeLayoutPage = () => {
 
           <hr className="my-6 border-gray-700" />
           <span className="block text-sm text-center text-gray-400 mt-4">
-            © 2024{" "}
+            © 2026{" "}
             <span className="font-semibold text-teal-600">
               Farwest Tech Store
             </span>
