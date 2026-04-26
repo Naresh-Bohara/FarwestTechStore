@@ -1,196 +1,233 @@
-import React, { useState } from 'react';
-import * as Yup from 'yup';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
+import React, { useEffect, useState } from "react";
+import * as Yup from "yup";
+import { Formik, Field, Form } from "formik";
+import { FaUserEdit, FaSpinner } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import userSvc from "./user.service";
+import { toast } from "react-toastify";
 
 const EditUserById = () => {
-  const [initialValues] = useState({
-    username: 'ExistingUser', 
-    email: 'user@example.com',
-    password: '', 
-    confirmPassword: '',
-    role: 'user', 
-    gender: 'male', 
-    phoneNumber: '9876543210',
-    address: '123 Street, City',
-    image: null,
-  });
+  const { id } = useParams();
 
-  const validationSchema = Yup.object({
-    username: Yup.string().required('Username is required'),
-    email: Yup.string().email('Invalid email address').required('Email is required'),
-    password: Yup.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Passwords must match'),
-    role: Yup.string().required('Role is required'),
-    gender: Yup.string().required('Gender is required'),
-    phoneNumber: Yup.string().required('Phone number is required'),
-    address: Yup.string().required('Address is required'),
-    image: Yup.mixed(),
-  });
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
-  const handleSubmit = (values) => {
-    // Handle update logic here (for now, just log the values)
-    console.log('Updated User Data:', values);
+  // ================= FETCH USER =================
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+
+      const res = await userSvc.getUserById(id);
+      console.log("USER:", res);
+
+      const data = res?.detail || res?.data?.detail || res?.data;
+
+      setUser(data);
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to load user");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchUser();
+  }, [id]);
+
+  // ================= UPDATE USER =================
+  const handleSubmit = async (values) => {
+    try {
+      setUpdating(true);
+
+      const formData = new FormData();
+
+      // ❌ IMPORTANT: REMOVE EMAIL BEFORE SENDING
+      const { email, image, ...payload } = values;
+
+      Object.entries(payload).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      if (image) {
+        formData.append("image", image);
+      }
+
+      await userSvc.updateUser(id, formData);
+
+      toast.success("User updated successfully");
+    } catch (err) {
+      console.log(err);
+      toast.error("Update failed");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // ================= LOADING =================
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <FaSpinner className="animate-spin text-4xl text-teal-600" />
+      </div>
+    );
+  }
+
+  // ================= UI =================
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-      <h1 className="text-2xl font-bold text-teal-950 py-3 border-b-2 border-teal-700">
-        Edit User
-      </h1>
-      <div className="mx-auto my-3 px-4 lg:px-12">
-        <div className="bg-white dark:bg-gray-800 shadow-md sm:rounded-lg p-4">
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ setFieldValue }) => (
-              <Form>
-                {/* Username */}
-                <div className="mb-4">
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Username
-                  </label>
-                  <Field
-                    type="text"
-                    name="username"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter username"
-                  />
-                  <ErrorMessage name="username" component="div" className="text-red-500 text-sm" />
-                </div>
+    <section className="min-h-screen bg-gray-50 p-6">
 
-                {/* Email */}
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <Field
-                    type="email"
-                    name="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter email address"
-                  />
-                  <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Password */}
-                <div className="mb-4">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Password
-                  </label>
-                  <Field
-                    type="password"
-                    name="password"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter new password"
-                  />
-                  <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Confirm Password */}
-                <div className="mb-4">
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Confirm Password
-                  </label>
-                  <Field
-                    type="password"
-                    name="confirmPassword"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Confirm new password"
-                  />
-                  <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Role */}
-                <div className="mb-4">
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Role
-                  </label>
-                  <Field
-                    as="select"
-                    name="role"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </Field>
-                  <ErrorMessage name="role" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Gender */}
-                <div className="mb-4">
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Gender
-                  </label>
-                  <Field as="select" name="gender" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500">
-                    <option value="" disabled>Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </Field>
-                  <ErrorMessage name="gender" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Phone Number */}
-                <div className="mb-4">
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone Number
-                  </label>
-                  <Field
-                    type="text"
-                    name="phoneNumber"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter phone number"
-                  />
-                  <ErrorMessage name="phoneNumber" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Address */}
-                <div className="mb-4">
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Address
-                  </label>
-                  <Field
-                    type="text"
-                    name="address"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter address"
-                  />
-                  <ErrorMessage name="address" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Image Upload */}
-                <div className="mb-4">
-                  <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Upload Your Image
-                  </label>
-                  <input
-                    id="image"
-                    name="image"
-                    type="file"
-                    onChange={(event) => {
-                      setFieldValue('image', event.currentTarget.files[0]);
-                    }}
-                    className="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                  />
-                  <ErrorMessage name="image" component="div" className="text-red-500 text-sm" />
-                </div>
-
-                {/* Submit Button */}
-                <div className="text-right">
-                  <button
-                    type="submit"
-                    className="text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:ring-teal-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-teal-500 dark:hover:bg-teal-600 focus:outline-none dark:focus:ring-teal-700"
-                  >
-                    Update User
-                  </button>
-                </div>
-              </Form>
-            )}
-          </Formik>
+      {/* HEADER */}
+      <div className="max-w-4xl mx-auto mb-6 flex items-center gap-3">
+        <FaUserEdit className="text-teal-600 text-3xl" />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Edit User
+          </h1>
+          <p className="text-sm text-gray-500">
+            Update user details (email cannot be changed)
+          </p>
         </div>
+      </div>
+
+      {/* CARD */}
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 border">
+
+        <Formik
+          enableReinitialize
+          initialValues={{
+            name: user?.name || "",
+            email: user?.email || "",
+            role: user?.role || "",
+            gender: user?.gender || "",
+            phone: user?.phone || "",
+            address: user?.address || "",
+            image: null,
+          }}
+          onSubmit={handleSubmit}
+        >
+          {({ setFieldValue }) => (
+            <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              {/* NAME */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Full Name
+                </label>
+                <Field
+                  name="name"
+                  className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                />
+              </div>
+
+              {/* EMAIL (READ ONLY) */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Email (Not Editable)
+                </label>
+                <Field
+                  name="email"
+                  disabled
+                  className="w-full mt-1 px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+
+              {/* ROLE */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Role
+                </label>
+                <Field
+                  as="select"
+                  name="role"
+                  className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="seller">Seller</option>
+                  <option value="customer">Customer</option>
+                </Field>
+              </div>
+
+              {/* GENDER */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Gender
+                </label>
+                <Field
+                  as="select"
+                  name="gender"
+                  className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </Field>
+              </div>
+
+              {/* PHONE */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Phone
+                </label>
+                <Field
+                  name="phone"
+                  className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* ADDRESS */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">
+                  Address
+                </label>
+                <Field
+                  name="address"
+                  className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* IMAGE */}
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Profile Image
+                </label>
+
+                <input
+                  type="file"
+                  className="mt-2 w-full border p-3 rounded-xl"
+                  onChange={(e) =>
+                    setFieldValue("image", e.target.files[0])
+                  }
+                />
+              </div>
+
+              {/* BUTTON */}
+              <div className="md:col-span-2 flex justify-end mt-4">
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-white font-semibold transition
+                  ${
+                    updating
+                      ? "bg-teal-700 cursor-not-allowed"
+                      : "bg-teal-600 hover:bg-teal-700"
+                  }`}
+                >
+                  {updating ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update User"
+                  )}
+                </button>
+              </div>
+
+            </Form>
+          )}
+        </Formik>
       </div>
     </section>
   );

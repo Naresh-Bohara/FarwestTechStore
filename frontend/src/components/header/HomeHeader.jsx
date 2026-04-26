@@ -21,6 +21,7 @@ import UserCartViewDropdown from "../cart/UserCartViewDropdown";
 import categorySvc from "../../pages/category/category.service";
 import { useDispatch } from "react-redux";
 import { resetCart } from "../../stores/cart.store";
+import { FaBox } from "react-icons/fa";
 
 const HomeHeader = () => {
   const navigate = useNavigate();
@@ -139,8 +140,18 @@ const HomeHeader = () => {
           </NavLink> */}
         </div>
 
+        <div className="flex items-end ">
+            {/* My Orders */}
+<NavLink
+  to="/orders"
+  className="relative inline-flex items-center justify-center rounded-lg p-2 text-sm font-medium text-gray-900 hover:bg-primary-100 dark:text-white dark:hover:bg-gray-700"
+>
+  <FaBox className="w-5 h-5 me-2" /> My Orders
+</NavLink>
+        </div>
+
         <div className="flex items-center space-x-3">
-          <DarkThemeToggle />
+          {/* <DarkThemeToggle /> */}
           <UserCartViewDropdown />
 
           {authLoading ? (

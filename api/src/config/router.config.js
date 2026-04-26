@@ -8,6 +8,7 @@ import categoryRouter from "../modules/category/category.route.js";
 import productRouter from "../modules/product/product.route.js";
 import orderRouter from "../modules/order/order.router.js";
 import chatRouter from "../modules/chat/chat.router.js";
+import userRouter from "../modules/user/user.router.js";
 
 const router = Router();
 
@@ -18,6 +19,6 @@ router.use("/category", categoryRouter);
 router.use("/product", productRouter);
 router.use("/order", orderRouter);
 router.use("/chat", chatRouter);
-
+router.use("/user", userRouter);
 
 export default router;

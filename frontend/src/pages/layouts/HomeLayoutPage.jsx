@@ -22,13 +22,13 @@ const HomeLayoutPage = () => {
       {/* Subscribe Section */}
       {/* bg-gradient-to-r from-teal-200 to-teal-300 p-8 rounded-lg shadow-lg */}
       <section className={`${themevalue.theme ==="light" ? "bg-teal-100" : "bg-gray-800"}`}>
-        {
+        {/* {
           themevalue.theme ==="light" ? <button onClick={(e)=>{
             themevalue.setTheme("dark")
           }}>Dark</button> : <button onClick={(e)=>{
             themevalue.setTheme("light")
           }}>Light</button>
-        }
+        } */}
         <div className="max-w-screen-xl mx-auto text-center">
           <h2 className="mb-4 text-4xl font-extrabold text-[#0a181a] sm:text-5xl">
             Join Our Newsletter!

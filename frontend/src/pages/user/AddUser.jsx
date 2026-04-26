@@ -1,195 +1,209 @@
-import React, { useState } from 'react';
-import * as Yup from 'yup';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
+import React, { useState } from "react";
+import * as Yup from "yup";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import userSvc from "./user.service";
+import { toast } from "react-toastify";
+import { FaUserPlus } from "react-icons/fa";
 
 const AddUser = () => {
-  const [initialValues] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'user', // Default role
-    gender: '',
-    phoneNumber: '',
-    address: '',
+  const [loading, setLoading] = useState(false);
+
+  const inputStyle =
+    "w-full mt-1 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm";
+
+  const textAreaStyle =
+    "w-full mt-1 px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm resize-none";
+
+  const initialValues = {
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "customer",
+    gender: "",
+    phone: "",
+    address: "",
     image: null,
-  });
+  };
 
   const validationSchema = Yup.object({
-    username: Yup.string().required('Username is required'),
-    email: Yup.string().email('Invalid email address').required('Email is required'),
-    password: Yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
+    name: Yup.string().required("Name is required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
+    password: Yup.string().min(6).required("Password is required"),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password'), null], 'Passwords must match')
-      .required('Confirm Password is required'),
-    role: Yup.string().required('Role is required'),
-    gender: Yup.string().required('Gender is required'),
-    phoneNumber: Yup.string().required('Phone number is required'),
-    address: Yup.string().required('Address is required'),
-    image: Yup.mixed().required('Image is required'),
+      .oneOf([Yup.ref("password")], "Passwords must match")
+      .required("Confirm password is required"),
+    role: Yup.string().required("Role is required"),
+    gender: Yup.string().required("Gender is required"),
+    phone: Yup.string().required("Phone is required"),
+    address: Yup.string().required("Address is required"),
+    image: Yup.mixed().required("Image is required"),
   });
 
-  const handleSubmit = (values) => {
-    // Perform add user API call here (replace with your API logic)
-    console.log('New User Data:', values);
+  const handleSubmit = async (values, { resetForm }) => {
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+
+      const { confirmPassword, ...payload } = values;
+
+      Object.keys(payload).forEach((key) => {
+        if (key !== "image") {
+          formData.append(key, payload[key]);
+        }
+      });
+
+      if (payload.image) {
+        formData.append("image", payload.image);
+      }
+
+      await userSvc.createUser(formData);
+
+      toast.success("User created successfully!");
+      resetForm();
+
+    } catch (err) {
+      toast.error(err?.data?.message || err?.message || "Failed to create user");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <section className="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
-      <h1 className="text-2xl font-bold text-teal-950 py-3 border-b-2 border-teal-700">
-        Add User
-      </h1>
-      <div className="mx-auto my-3 px-4 lg:px-12">
-        <div className="bg-white dark:bg-gray-800 shadow-md sm:rounded-lg p-4">
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ setFieldValue }) => (
-              <Form>
-                {/* Username */}
-                <div className="mb-4">
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Username
-                  </label>
-                  <Field
-                    type="text"
-                    name="username"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter username"
-                  />
-                  <ErrorMessage name="username" component="div" className="text-red-500 text-sm" />
-                </div>
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
 
-                {/* Email */}
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <Field
-                    type="email"
-                    name="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter email address"
-                  />
-                  <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
-                </div>
+      {/* HEADER */}
+      <div className="max-w-5xl mx-auto mb-6 flex items-center gap-3">
+        <FaUserPlus className="text-teal-600 text-3xl" />
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Add New User
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Create and manage users from admin dashboard
+          </p>
+        </div>
+      </div>
 
-                {/* Password */}
-                <div className="mb-4">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Password
-                  </label>
-                  <Field
-                    type="password"
-                    name="password"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter password"
-                  />
-                  <ErrorMessage name="password" component="div" className="text-red-500 text-sm" />
-                </div>
+      {/* CARD */}
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
 
-                {/* Confirm Password */}
-                <div className="mb-4">
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Confirm Password
-                  </label>
-                  <Field
-                    type="password"
-                    name="confirmPassword"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Confirm password"
-                  />
-                  <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm" />
-                </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ setFieldValue }) => (
+            <Form className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                {/* Role */}
-                <div className="mb-4">
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Role
-                  </label>
-                  <Field
-                    as="select"
-                    name="role"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </Field>
-                  <ErrorMessage name="role" component="div" className="text-red-500 text-sm" />
-                </div>
+              {/* NAME */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Full Name</label>
+                <Field name="name" className={inputStyle} />
+                <ErrorMessage name="name" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
 
-                {/* Gender */}
-                <div className="mb-4">
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Gender
-                  </label>
-                  <Field as="select" name="gender" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500">
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </Field>
-                  <ErrorMessage name="gender" component="div" className="text-red-500 text-sm" />
-                </div>
+              {/* EMAIL */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Email</label>
+                <Field name="email" className={inputStyle} />
+                <ErrorMessage name="email" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
 
-                {/* Phone Number */}
-                <div className="mb-4">
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone Number
-                  </label>
-                  <Field
-                    type="text"
-                    name="phoneNumber"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter phone number"
-                  />
-                  <ErrorMessage name="phoneNumber" component="div" className="text-red-500 text-sm" />
-                </div>
+              {/* PASSWORD */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Password</label>
+                <Field type="password" name="password" className={inputStyle} />
+                <ErrorMessage name="password" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
 
-                {/* Address */}
-                <div className="mb-4">
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Address
-                  </label>
-                  <Field
-                    type="text"
-                    name="address"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500"
-                    placeholder="Enter address"
-                  />
-                  <ErrorMessage name="address" component="div" className="text-red-500 text-sm" />
-                </div>
+              {/* CONFIRM */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
+                <Field type="password" name="confirmPassword" className={inputStyle} />
+                <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
 
-                {/* Image Upload */}
-                <div className="mb-4">
-                  <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Upload Your Image
-                  </label>
+              {/* ROLE */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Role</label>
+                <Field as="select" name="role" className={inputStyle}>
+                  <option value="customer">Customer</option>
+                  <option value="seller">Seller</option>
+                  <option value="admin">Admin</option>
+                </Field>
+              </div>
+
+              {/* GENDER */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Gender</label>
+                <Field as="select" name="gender" className={inputStyle}>
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </Field>
+                <ErrorMessage name="gender" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
+
+              {/* PHONE */}
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Phone</label>
+                <Field name="phone" className={inputStyle} />
+              </div>
+
+              {/* ADDRESS */}
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-gray-700">Address</label>
+                <Field as="textarea" rows="3" name="address" className={textAreaStyle} />
+                <ErrorMessage name="address" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
+
+              {/* IMAGE */}
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-gray-700">Profile Image</label>
+
+                <div className="mt-2 border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
                   <input
                     type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={(event) => setFieldValue("image", event.currentTarget.files[0])}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                    onChange={(e) => setFieldValue("image", e.target.files[0])}
+                    disabled={loading}
                   />
-                  <ErrorMessage name="image" component="div" className="text-red-500 text-sm" />
                 </div>
 
-                {/* Submit Button */}
-                <div>
-                  <button
-                    type="submit"
-                    className="inline-flex justify-center px-4 py-2 bg-teal-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-                  >
-                    Add User
-                  </button>
-                </div>
-              </Form>
-            )}
-          </Formik>
-        </div>
+                <ErrorMessage name="image" component="div" className="text-red-500 text-xs mt-1" />
+              </div>
+
+              {/* BUTTON */}
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold shadow-md transition 
+                  ${loading
+                      ? "bg-teal-700 cursor-not-allowed"
+                      : "bg-teal-600 hover:bg-teal-700"
+                    } text-white`}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <FaUserPlus />
+                      Create User
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </Form>
+          )}
+        </Formik>
+
       </div>
     </section>
   );
