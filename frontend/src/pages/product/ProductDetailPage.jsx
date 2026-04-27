@@ -6,12 +6,12 @@ import { toast } from "react-toastify";
 import PageNotFound from "../errors/PageNotFound";
 import productSvc from "./product.service";
 import ProductDetailImageSlider from "../../components/product/ProductDetailImageSlider";
-import ProductGridList from "../../components/product/ProductGridList";
 import { AuthContext } from "../../components/context/AuthContext";
 import ReviewForm from "../../components/product/ReviewForm";
 import cartSvc from "../cart/cart.service";
 import { getMyCartItems } from "../../stores/cart.store";
 import { useDispatch } from "react-redux";
+import ProductCard from "../../components/ProductCard";
 
 const ProductDetailPage = () => {
   const params = useParams();
@@ -32,6 +32,7 @@ const ProductDetailPage = () => {
   const loadProductDetail = async () => {
     try {
       const response = await productSvc.getProductBySlug(params.slug);
+
       setDetail(response.data.detail);
       setRelated(response.data.related);
       setReviews(response.data.reviews);
@@ -48,64 +49,64 @@ const ProductDetailPage = () => {
     loadProductDetail();
   }, [params]);
 
- // Allow only numbers while typing
-const handleQuantityChange = (e) => {
-  let val = e.target.value;
+  // Allow only numbers while typing
+  const handleQuantityChange = (e) => {
+    let val = e.target.value;
 
-  // allow empty string while typing
-  if (val === "") {
-    setQuantity("");
-    return;
-  }
+    // allow empty string while typing
+    if (val === "") {
+      setQuantity("");
+      return;
+    }
 
-  // only numbers
-  const num = Number(val);
-  if (!isNaN(num)) {
-    setQuantity(num);
-  }
-};
+    // only numbers
+    const num = Number(val);
+    if (!isNaN(num)) {
+      setQuantity(num);
+    }
+  };
 
-// Enforce min 0 only on blur
-const handleQuantityBlur = () => {
-  let val = Number(quantity);
+  // Enforce min 0 only on blur
+  const handleQuantityBlur = () => {
+    let val = Number(quantity);
 
-  if (isNaN(val) || val < 0) {
-    setQuantity(0);
-    return;
-  }
+    if (isNaN(val) || val < 0) {
+      setQuantity(0);
+      return;
+    }
 
-  setQuantity(val);
-};
+    setQuantity(val);
+  };
 
-const addToCart = async (e) => {
-  e.preventDefault();
+  const addToCart = async (e) => {
+    e.preventDefault();
 
-  if (!loggedInUser) {
-    toast.error("You need to be logged in to add products to cart");
-    navigate("/login?redirectTo=/products/" + detail.slug);
-    return;
-  }
+    if (!loggedInUser) {
+      toast.error("You need to be logged in to add products to cart");
+      navigate("/login?redirectTo=/products/" + detail.slug);
+      return;
+    }
 
-  let val = Number(quantity);
-  if (isNaN(val) || val < 0) {
-    toast.error("Quantity cannot be negative");
-    return;
-  }
+    let val = Number(quantity);
+    if (isNaN(val) || val < 0) {
+      toast.error("Quantity cannot be negative");
+      return;
+    }
 
-  try {
-    await cartSvc.addToCart({
-      productId: detail._id,
-      quantity: val,
-    });
+    try {
+      await cartSvc.addToCart({
+        productId: detail._id,
+        quantity: val,
+      });
 
-    toast.success("Product added to cart successfully");
-    setQuantity(1);
+      toast.success("Product added to cart successfully");
+      setQuantity(1);
       dispatch(getMyCartItems());
-  } catch (err) {
-    toast.error("Failed to add product to cart");
-    console.log(err);
-  }
-};
+    } catch (err) {
+      toast.error("Failed to add product to cart");
+      console.log(err);
+    }
+  };
 
   return (
     <>
@@ -168,7 +169,7 @@ const addToCart = async (e) => {
                                 key={i}
                                 className="text-gray-300 w-5 h-5"
                               />
-                            )
+                            ),
                           )}
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -188,22 +189,22 @@ const addToCart = async (e) => {
               Add to favorites
             </a> */}
                         <input
-  className="w-20 py-2 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400"
-  type="number"
-  min={0}
-  value={quantity}
-  onChange={handleQuantityChange}
-  onBlur={handleQuantityBlur}
-/>
+                          className="w-20 py-2 px-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400"
+                          type="number"
+                          min={0}
+                          value={quantity}
+                          onChange={handleQuantityChange}
+                          onBlur={handleQuantityBlur}
+                        />
 
-  <NavLink
-    to={""}
-    onClick={addToCart}
-    className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm px-5 py-2.5 shadow"
-  >
-    <FaShoppingCart className="w-5 h-5" />
-    Add to Cart
-  </NavLink>
+                        <NavLink
+                          to={""}
+                          onClick={addToCart}
+                          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm px-5 py-2.5 shadow"
+                        >
+                          <FaShoppingCart className="w-5 h-5" />
+                          Add to Cart
+                        </NavLink>
                       </div>
 
                       {/* Description */}
@@ -265,7 +266,7 @@ const addToCart = async (e) => {
                                             key={i}
                                             className="w-4 h-4 text-gray-300"
                                           />
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   </div>
@@ -275,7 +276,7 @@ const addToCart = async (e) => {
                                   {review.createdAt && (
                                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                       {new Date(
-                                        review.createdAt
+                                        review.createdAt,
                                       ).toLocaleDateString("en-US", {
                                         year: "numeric",
                                         month: "short",
@@ -315,13 +316,14 @@ const addToCart = async (e) => {
 
                     {/* Related Products */}
                     <div className="w-full lg:w-1/4 mt-10 lg:mt-0">
-                      <h2 className="text-xl font-bold text-yellow-400 dark:text-white border-b pb-2 mb-4">
+                      <h2 className="text-xl font-bold text-teal-600 dark:text-white mb-4">
                         Related Products
                       </h2>
-                      <div className="space-y-4">
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                         {related &&
                           related.map((prod, index) => (
-                            <ProductGridList product={prod} key={index} />
+                            <ProductCard product={prod} key={index} />
                           ))}
                       </div>
                     </div>

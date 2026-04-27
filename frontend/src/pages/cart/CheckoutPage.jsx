@@ -6,7 +6,14 @@ import { toast } from "react-toastify";
 import { resetCart } from "../../stores/cart.store";
 import { useNavigate } from "react-router-dom";
 import cartSvc from "./cart.service";
-import { FaPaperPlane, FaSpinner, FaCheckCircle } from "react-icons/fa";
+import {
+  FaPaperPlane,
+  FaSpinner,
+  FaCheckCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+
+import qrImage from "../../assets/images/404.jpg";
 
 import {
   InputLabelComponent,
@@ -36,9 +43,7 @@ const CheckoutPage = () => {
 
   const cart = useSelector((state) => state?.cart?.cart);
 
-  /* ======================
-     Autofill user
-  ====================== */
+  /* Autofill user */
   useEffect(() => {
     if (loggedInUser) {
       setValue("name", loggedInUser.name || "");
@@ -49,10 +54,7 @@ const CheckoutPage = () => {
     }
   }, [loggedInUser, setValue]);
 
-  /* ======================
-     IMPORTANT FIX:
-     DO NOT redirect instantly while order is processing/success
-  ====================== */
+  /* Cart check */
   useEffect(() => {
     if (isPlacingOrder || orderSuccess) return;
 
@@ -62,18 +64,15 @@ const CheckoutPage = () => {
     }
   }, [cart, navigate, isPlacingOrder, orderSuccess]);
 
-  /* ======================
-     PLACE ORDER
-  ====================== */
+  /* PLACE ORDER */
   const placeOrder = async (data) => {
     try {
       if (!data.paymentScreenshot) {
-        toast.error("Payment screenshot is required");
+        toast.error("Please upload payment screenshot");
         return;
       }
 
       setIsPlacingOrder(true);
-      setOrderSuccess(false);
 
       const formData = new FormData();
       formData.append("name", data.name);
@@ -88,35 +87,37 @@ const CheckoutPage = () => {
 
       dispatch(resetCart());
 
-      toast.success("Order placed successfully");
-
       setOrderSuccess(true);
-      setIsPlacingOrder(false);
+      toast.success("Order placed successfully");
 
       setTimeout(() => {
         navigate("/orders", { replace: true });
-      }, 800);
+      }, 1000);
 
     } catch (err) {
-      console.log(err);
       toast.error(err?.response?.data?.message || "Failed to place order");
-      setOrderSuccess(false);
+    } finally {
       setIsPlacingOrder(false);
     }
   };
 
   return (
-    <section className="bg-white py-8 md:py-16 dark:bg-gray-900">
+    <section className="bg-gray-50 dark:bg-gray-900 py-10">
       <div className="mx-auto max-w-2xl px-4">
 
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-          Checkout (QR Payment)
+        {/* TITLE */}
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Checkout
         </h2>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Complete payment using QR and upload screenshot to confirm order
+        </p>
 
         <form onSubmit={handleSubmit(placeOrder)} className="space-y-6">
 
           {/* USER INFO */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div>
               <InputLabelComponent label="Full Name" />
@@ -143,7 +144,7 @@ const CheckoutPage = () => {
 
             <div>
               <InputLabelComponent label="Phone" />
-              <TextInputComponent control={control} name="phone" type="tel" />
+              <TextInputComponent control={control} name="phone" />
             </div>
 
             <div className="sm:col-span-2">
@@ -152,26 +153,44 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* QR */}
-          <div className="border p-4 rounded-lg text-center bg-gray-50 dark:bg-gray-800">
-            <p className="mb-3 font-medium">Scan QR and pay</p>
-            <img src="/qr.png" className="mx-auto w-48 h-48" />
+          {/* ⚠️ QR SECTION (HIGHLIGHTED) */}
+          <div className="border-2 border-red-300 dark:border-red-500 rounded-xl p-5 bg-red-50 dark:bg-gray-800 text-center">
+
+            <div className="flex items-center justify-center gap-2 text-red-600 font-semibold mb-2">
+              <FaExclamationTriangle />
+              Mandatory Payment Required
+            </div>
+
+            <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+              You must scan QR code below and complete payment before placing order
+            </p>
+
+            <img
+              src={qrImage}
+              className="mx-auto w-52 h-52 rounded-lg border shadow"
+              alt="QR Code"
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              After payment, upload screenshot below
+            </p>
           </div>
 
-          {/* FILE */}
-          <div>
-            <InputLabelComponent label="Payment Screenshot" />
+          {/* SCREENSHOT UPLOAD (IMPORTANT BOX) */}
+          <div className=" p-4 bg-white dark:bg-gray-800">
+
+            <InputLabelComponent label="Upload Payment Screenshot *" />
 
             <Controller
               control={control}
               name="paymentScreenshot"
-              rules={{ required: "Screenshot is required" }}
+              rules={{ required: "Payment screenshot is required" }}
               render={({ field }) => (
                 <>
                   <input
                     type="file"
                     accept="image/*"
-                    className="w-full border p-2 rounded"
+                    className="w-full border p-2 rounded mt-2"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
@@ -184,13 +203,14 @@ const CheckoutPage = () => {
                   {preview && (
                     <img
                       src={preview}
-                      className="mt-3 h-40 rounded object-cover"
+                      className="mt-3 h-40 w-full object-cover rounded-lg border"
+                      alt="Preview"
                     />
                   )}
 
                   {errors?.paymentScreenshot && (
-                    <p className="text-red-500 text-sm">
-                      {errors.paymentScreenshot.message}
+                    <p className="text-red-600 text-sm mt-1 font-medium">
+                      ⚠ {errors.paymentScreenshot.message}
                     </p>
                   )}
                 </>
@@ -202,9 +222,13 @@ const CheckoutPage = () => {
           <button
             type="submit"
             disabled={isPlacingOrder || orderSuccess}
-            className={`w-full flex justify-center items-center gap-2 rounded-lg py-3 text-white
-              ${orderSuccess ? "bg-green-600" : "bg-primary-700 hover:bg-primary-800"}
-              disabled:opacity-70`}
+            className={`w-full flex justify-center items-center gap-2 rounded-lg py-3 font-medium text-white transition
+              ${
+                orderSuccess
+                  ? "bg-green-600"
+                  : "bg-teal-600 hover:bg-teal-700"
+              }
+              disabled:opacity-60`}
           >
             {isPlacingOrder && <FaSpinner className="animate-spin" />}
             {isPlacingOrder && "Processing..."}
